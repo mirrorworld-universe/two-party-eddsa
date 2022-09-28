@@ -95,7 +95,7 @@ func NewKeyFromSeed(seed []byte) PrivateKey {
 	return privateKey
 }
 
-func newKeyFromSeed(privateKey, seed []byte) {
+func newKeyFromSeed(privateKey, seed []byte) Keypair {
 	if l := len(seed); l != SeedSize {
 		panic("ed25519: bad seed length: " + strconv.Itoa(l))
 	}
@@ -121,12 +121,21 @@ func newKeyFromSeed(privateKey, seed []byte) {
 	fmt.Println("private key 2=")
 	privateKeyScalar.Print()
 
-	//prefixBN := new(big.Int).SetBytes(prefix)
-	//prefixScalar := ECSFromBigInt(prefixBN)
+	prefixBN := new(big.Int).SetBytes(prefix)
+	prefixScalar := ECSFromBigInt(prefixBN)
 	publicKey := ecPoint.ECPMul(&privateKeyScalar.Fe)
+
 	publicKeyBytes := [32]byte{}
 	publicKey.Ge.ToBytes(&publicKeyBytes)
-	fmt.Println("publicKey={}", publicKeyBytes) // last digit doesn't match
+	fmt.Println("publicKey=", publicKeyBytes)
+
+	return Keypair{
+		PublicKey: *publicKey,
+		ExtendedPrivateKey: ExpendedPrivateKey{
+			Prefix:     prefixScalar,
+			PrivateKey: privateKeyScalar,
+		},
+	}
 }
 
 //type GE = Ed25519Point

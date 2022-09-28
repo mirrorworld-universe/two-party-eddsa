@@ -21,5 +21,5 @@ func main() {
 	b := rnd.Bytes() // big endian byte
 	reader := bytes.NewReader(b)
 	publicKey, privateKey, _ := ed25519.GenerateKey(reader)
-	fmt.Println("{} {}", toLittleEdian(publicKey), privateKey)
+	fmt.Println(toLittleEdian(publicKey), privateKey)
 }
