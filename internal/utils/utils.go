@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"crypto/rand"
 	"math/big"
 	"strconv"
 )
@@ -63,4 +64,51 @@ func ConcatSlices(slices [][]byte) []byte {
 		i += copy(tmp[i:], s)
 	}
 	return tmp
+}
+
+func BigintSample(bitSize uint) *big.Int {
+	max := new(big.Int)
+	max.Exp(big.NewInt(2), big.NewInt(130), nil).Sub(max, big.NewInt(1))
+	n, _ := rand.Int(rand.Reader, max)
+
+	bytes := (bitSize-1)/8 + 1
+	buf := make([]byte, bytes)
+	n.FillBytes(buf)
+
+	n2 := new(big.Int).SetBytes(buf)
+	n2.Rsh(n2, bytes*8-bitSize)
+	return n2
+}
+
+func BigintToBytes32(n *big.Int) []byte {
+	buf := []byte{}
+	bBytes := n.Bytes()
+	for i := len(bBytes); i < 32; i++ {
+		buf = append(buf, 0)
+	}
+	temp := [][]byte{
+		buf,
+		bBytes,
+	}
+	temp2 := ConcatSlices(temp)
+	ret := temp2[:32]
+	return ret
+}
+
+func BigIntModMul(a *big.Int, b *big.Int, mod *big.Int) *big.Int {
+	a = a.Mod(a, mod)
+	b = b.Mod(b, mod)
+	temp := new(big.Int)
+	temp.Mul(a, b)
+	temp.Mod(temp, mod)
+	return temp
+}
+
+func BigIntModAdd(a *big.Int, b *big.Int, mod *big.Int) *big.Int {
+	a = a.Mod(a, mod)
+	b = b.Mod(b, mod)
+	temp := new(big.Int)
+	temp.Add(a, b)
+	temp.Mod(temp, mod)
+	return temp
 }

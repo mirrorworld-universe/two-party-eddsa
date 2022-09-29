@@ -21,6 +21,8 @@ const (
 	SignatureSize = 64
 	// SeedSize is the size, in bytes, of private key seeds. These are the private key representations used by RFC 8032.
 	SeedSize = 32
+
+	SECURITY_BITS = 256
 )
 
 type KeyAgg struct {

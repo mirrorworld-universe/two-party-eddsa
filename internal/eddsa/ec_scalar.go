@@ -39,7 +39,23 @@ func ECSFromBigInt(n *big.Int) Ed25519Scalar {
 	}
 }
 
-func (e *Ed25519Scalar) toBigInt() *big.Int {
+func (e *Ed25519Scalar) Mul(other *Ed25519Scalar) Ed25519Scalar {
+	lhsBN := e.ToBigInt()
+	rhsBN := other.ToBigInt()
+	mul := utils.BigIntModMul(lhsBN, rhsBN, Q())
+	mulFe := ECSFromBigInt(mul)
+	return mulFe
+}
+
+func (e *Ed25519Scalar) Add(other *Ed25519Scalar) Ed25519Scalar {
+	lhsBN := e.ToBigInt()
+	rhsBN := other.ToBigInt()
+	mul := utils.BigIntModMul(lhsBN, rhsBN, Q())
+	mulFe := ECSFromBigInt(mul)
+	return mulFe
+}
+
+func (e *Ed25519Scalar) ToBigInt() *big.Int {
 	feBytes := [32]byte{}
 	edwards25519.FeToBytes(&feBytes, &e.Fe)
 
@@ -52,7 +68,7 @@ func (e *Ed25519Scalar) toBigInt() *big.Int {
 	return ret
 }
 
-func q() *big.Int {
+func Q() *big.Int {
 	qBytesArray := [32]byte{237, 211, 245, 92, 26, 99, 18, 88, 214, 156, 247, 162, 222, 249, 222, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16}
 	lFe := new(edwards25519.FieldElement)
 	edwards25519.FeFromBytes(lFe, &qBytesArray)
@@ -60,7 +76,7 @@ func q() *big.Int {
 		Purpose: "q",
 		Fe:      *lFe,
 	}
-	return lFeScalar.toBigInt()
+	return lFeScalar.ToBigInt()
 }
 
 //func from(n *big.Int) *Ed25519Scalar {
@@ -74,10 +90,10 @@ func q() *big.Int {
 func ECSNewRandom() *Ed25519Scalar {
 	// sample_below()
 	reader := cryptorand.Reader
-	rndBn, _ := cryptorand.Int(reader, q())
+	rndBn, _ := cryptorand.Int(reader, Q())
 	bn8 := big.NewInt(8)
 	rndBnMul := new(big.Int).Mul(rndBn, bn8)
-	rndBnMul8 := new(big.Int).Mod(rndBnMul, q())
+	rndBnMul8 := new(big.Int).Mod(rndBnMul, Q())
 	ret := ECSFromBigInt(rndBnMul8)
 	return &ret
 }
