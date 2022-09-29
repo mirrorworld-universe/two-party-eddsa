@@ -7,21 +7,29 @@ import (
 	"math/big"
 )
 
+const TWO_TIMES_SECRET_KEY_SIZE = 64
+
 type Ed25519Scalar struct {
 	Purpose string
 	Fe      edwards25519.FieldElement
 }
 
 func ECSFromBigInt(n *big.Int) Ed25519Scalar {
-	nBytes := n.Bytes()
-	nBytes = utils.ReverseByteSlice(nBytes)
-	var nBytes64 [64]byte
-	for i := 0; i < len(nBytes); i++ {
-		nBytes64[i] = nBytes[i]
+	v := n.Bytes()
+	if len(v) > TWO_TIMES_SECRET_KEY_SIZE {
+		v = v[0:TWO_TIMES_SECRET_KEY_SIZE]
 	}
+	template := make([]byte, TWO_TIMES_SECRET_KEY_SIZE-len(v))
+	template = append(template, v...)
+	v = template
+	v = utils.ReverseByteSlice(v)
 
 	out := [32]byte{}
-	edwards25519.ScReduce(&out, &nBytes64)
+	v64 := [64]byte{}
+	for i := 0; i < 64; i++ {
+		v64[i] = v[i]
+	}
+	edwards25519.ScReduce(&out, &v64)
 	fe := new(edwards25519.FieldElement)
 	edwards25519.FeFromBytes(fe, &out)
 	return Ed25519Scalar{
@@ -34,4 +42,10 @@ func (e *Ed25519Scalar) Print() {
 	feBytes := [32]byte{}
 	edwards25519.FeToBytes(&feBytes, &e.Fe)
 	fmt.Println("Purpose=", e.Purpose, " fe.bytes=", feBytes)
+}
+
+func (e *Ed25519Scalar) ToString() string {
+	feBytes := [32]byte{}
+	edwards25519.FeToBytes(&feBytes, &e.Fe)
+	return "Purpose=" + e.Purpose + " fe.bytes=" + utils.BytesToStr(feBytes[:])
 }

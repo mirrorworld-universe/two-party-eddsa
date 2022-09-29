@@ -7,6 +7,7 @@ import (
 	"crypto/sha512"
 	"fmt"
 	"io"
+	"main/internal/utils"
 	"math/big"
 	"strconv"
 )
@@ -120,7 +121,7 @@ func newKeyFromSeed(privateKey, seed []byte) Keypair {
 
 	privateKeyBN := new(big.Int).SetBytes(privateKey)
 	privateKeyScalar := ECSFromBigInt(privateKeyBN)
-	fmt.Println("private key 2=")
+	fmt.Print("private key 2=")
 	privateKeyScalar.Print()
 
 	prefixBN := new(big.Int).SetBytes(prefix)
@@ -142,13 +143,15 @@ func newKeyFromSeed(privateKey, seed []byte) Keypair {
 
 func KeyAggregationN(pks *[]Ed25519Point, partyIdx uint8) *KeyAgg {
 	bn1 := new(big.Int).SetUint64(1)
-	xCoorVec := make([]big.Int, len(*pks))
-	for _, pk := range *pks {
-		xCoorVec = append(xCoorVec, *pk.BytesCompressedToBigInt())
+	xCoorVec := []big.Int{}
+	for i, pk := range *pks {
+		temp := pk.BytesCompressedToBigInt()
+		fmt.Println("pks[] i=", i, ".bytes_compressed_to_big_int=", temp.String())
+		xCoorVec = append(xCoorVec, *temp)
 	}
-	fmt.Println("x_coor_vec=", xCoorVec)
+	fmt.Println("x_coor_vec=", utils.BigIntSliceToString(&xCoorVec))
 
-	hashVec := make([]big.Int, len(*pks))
+	hashVec := []big.Int{}
 	for _, pk := range xCoorVec {
 		vec := []big.Int{}
 		vec = append(vec, *bn1)
@@ -156,7 +159,7 @@ func KeyAggregationN(pks *[]Ed25519Point, partyIdx uint8) *KeyAgg {
 		for i, _ := range *pks {
 			vec = append(vec, xCoorVec[i])
 		}
-		fmt.Println("hash_vec xx=", vec)
+		fmt.Println("hash_vec xx=", utils.BigIntSliceToString(&vec))
 		// put all bytes together
 		bytes := []byte{}
 		for _, v := range vec {
@@ -167,7 +170,7 @@ func KeyAggregationN(pks *[]Ed25519Point, partyIdx uint8) *KeyAgg {
 		h := sha512.Sum512(bytes)
 		hashVec = append(hashVec, *new(big.Int).SetBytes(h[:]))
 	}
-	fmt.Println("hash_vec=", hashVec)
+	fmt.Println("hash_vec=", utils.BigIntSliceToString(&hashVec))
 
 	apkVec := []*Ed25519Point{}
 	for i := 0; i < len(*pks); i++ {
@@ -176,11 +179,12 @@ func KeyAggregationN(pks *[]Ed25519Point, partyIdx uint8) *KeyAgg {
 		hashT := ECSFromBigInt(&hash)
 		a_i := pk.ECPMul(&hashT.Fe)
 		apkVec = append(apkVec, a_i)
+		fmt.Println("xx hash=", hash.String(), " hash_t=", hashT.ToString(), " a_i=", a_i.ToString())
 	}
 
-	sum := new(Ed25519Point)
-	for _, v := range apkVec {
-		sum = sum.ECPAddPoint(&v.Ge)
+	sum := apkVec[0]
+	for i := 1; i < len(apkVec); i++ {
+		sum = sum.ECPAddPoint(&apkVec[i].Ge)
 	}
 	hash := ECSFromBigInt(&hashVec[partyIdx])
 	keyAgg := KeyAgg{
@@ -188,6 +192,10 @@ func KeyAggregationN(pks *[]Ed25519Point, partyIdx uint8) *KeyAgg {
 		Hash: hash,
 	}
 	return &keyAgg
+}
+
+func (k *KeyAgg) ToString() string {
+	return "apk=" + k.Apk.ToString() + ", hash=" + k.Hash.ToString()
 }
 
 //type GE = Ed25519Point

@@ -3,6 +3,7 @@ package eddsa
 import (
 	"errors"
 	"main/internal/agl_ed25519/edwards25519"
+	"main/internal/utils"
 	"math/big"
 )
 
@@ -119,4 +120,10 @@ func (e *Ed25519Point) BytesCompressedToBigInt() *big.Int {
 	bytes := &[32]byte{}
 	e.Ge.ToBytes(bytes)
 	return new(big.Int).SetBytes(bytes[:])
+}
+
+func (e *Ed25519Point) ToString() string {
+	geBytes := [32]byte{}
+	e.Ge.ToBytes(&geBytes)
+	return "Purpose=" + e.Purpose + " ge.bytes=" + utils.BytesToStr(geBytes[:])
 }
