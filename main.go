@@ -1,11 +1,6 @@
 package main
 
-import (
-	"bytes"
-	"fmt"
-	"main/internal/ed25519"
-	"math/big"
-)
+import "main/internal/p0"
 
 func toLittleEdian(a []byte) (b []byte) {
 	b = make([]byte, len(a))
@@ -17,9 +12,11 @@ func toLittleEdian(a []byte) (b []byte) {
 }
 
 func main() {
-	rnd, _ := new(big.Int).SetString("1276567075174267627823301091809777026200725024551313144625936661005557002592", 10)
-	b := rnd.Bytes() // big endian byte
-	reader := bytes.NewReader(b)
-	publicKey, privateKey, _ := ed25519.GenerateKey(reader)
-	fmt.Println(toLittleEdian(publicKey), privateKey)
+	//rnd, _ := new(big.Int).SetString("1276567075174267627823301091809777026200725024551313144625936661005557002592", 10)
+	//b := rnd.Bytes() // big endian byte
+	//reader := bytes.NewReader(b)
+	//publicKey, privateKey, _ := eddsa.GenerateKey(reader)
+	//fmt.Println(toLittleEdian(publicKey), privateKey)
+
+	p0.KeyGen()
 }

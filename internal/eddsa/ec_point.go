@@ -1,11 +1,14 @@
-package ed25519
+package eddsa
 
 import (
 	"errors"
-	"github.com/agl/ed25519/edwards25519"
+	"main/internal/agl_ed25519/edwards25519"
+	"math/big"
 )
 
 type GeP3 = edwards25519.ExtendedGroupElement
+type GeP1P1 = edwards25519.CompletedGroupElement
+type GeP2 = edwards25519.ProjectiveGroupElement
 
 type Ed25519Point struct {
 	Purpose string
@@ -83,4 +86,37 @@ func (e *Ed25519Point) ECPMul(fe *edwards25519.FieldElement) *Ed25519Point {
 		Purpose: "scalar_point_mul",
 		Ge:      *ge,
 	}
+}
+
+func (e *Ed25519Point) ECPAdd(other *GeP3) *GeP1P1 {
+	pkpk := new(GeP1P1)
+	otherCached := new(edwards25519.CachedGroupElement)
+	other.ToCached(otherCached)
+	edwards25519.GeAdd(pkpk, &e.Ge, otherCached)
+	return pkpk
+}
+
+func (e *Ed25519Point) ECPAddPoint(other *GeP3) *Ed25519Point {
+	pkpk := e.ECPAdd(other)
+	pkP2 := new(edwards25519.ProjectiveGroupElement)
+	pkpk.ToProjective(pkP2)
+	pkP2Bytes := [32]byte{}
+	pkP2.ToBytes(&pkP2Bytes)
+	pkP2Bytes[31] ^= 1 << 7
+	ge := GeP3FromBytesNegativeVartime(&pkP2Bytes)
+	if ge == nil {
+		panic(errors.New("ECPAddPoint GeP3FromBytesNegativeVartime failed"))
+	}
+
+	p := &Ed25519Point{
+		Purpose: "combine",
+		Ge:      *ge,
+	}
+	return p
+}
+
+func (e *Ed25519Point) BytesCompressedToBigInt() *big.Int {
+	bytes := &[32]byte{}
+	e.Ge.ToBytes(bytes)
+	return new(big.Int).SetBytes(bytes[:])
 }

@@ -1,4 +1,4 @@
-package ed25519
+package eddsa
 
 import (
 	"bytes"
@@ -21,6 +21,11 @@ const (
 	// SeedSize is the size, in bytes, of private key seeds. These are the private key representations used by RFC 8032.
 	SeedSize = 32
 )
+
+type KeyAgg struct {
+	Apk  Ed25519Point
+	Hash Ed25519Scalar
+}
 
 // PublicKey is the type of Ed25519 public keys.
 type PublicKey []byte
@@ -67,37 +72,34 @@ func (priv PrivateKey) Seed() []byte {
 
 // GenerateKey generates a public/private key pair using entropy from rand.
 // If rand is nil, crypto/rand.Reader will be used.
-func GenerateKey(rand io.Reader) (PublicKey, PrivateKey, error) {
+func GenerateKey(rand io.Reader) (*Keypair, error) {
 	if rand == nil {
 		rand = cryptorand.Reader
 	}
 
 	seed := make([]byte, SeedSize)
 	if _, err := io.ReadFull(rand, seed); err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	privateKey := NewKeyFromSeed(seed)
-	publicKey := make([]byte, PublicKeySize)
-	copy(publicKey, privateKey[32:])
-
-	return publicKey, privateKey, nil
+	keypair := NewKeyFromSeed(seed)
+	return &keypair, nil
 }
 
 // NewKeyFromSeed calculates a private key from a seed. It will panic if
 // len(seed) is not SeedSize. This function is provided for interoperability
 // with RFC 8032. RFC 8032's private keys correspond to seeds in this
 // package.
-func NewKeyFromSeed(seed []byte) PrivateKey {
+func NewKeyFromSeed(seed []byte) Keypair {
 	// Outline the function body so that the returned key can be stack-allocated.
 	privateKey := make([]byte, PrivateKeySize)
-	newKeyFromSeed(privateKey, seed)
-	return privateKey
+	keypair := newKeyFromSeed(privateKey, seed)
+	return keypair
 }
 
 func newKeyFromSeed(privateKey, seed []byte) Keypair {
 	if l := len(seed); l != SeedSize {
-		panic("ed25519: bad seed length: " + strconv.Itoa(l))
+		panic("eddsa: bad seed length: " + strconv.Itoa(l))
 	}
 	ecPoint := ECPointGenerator()
 	ecPointBytes := [32]byte{}
@@ -136,6 +138,56 @@ func newKeyFromSeed(privateKey, seed []byte) Keypair {
 			PrivateKey: privateKeyScalar,
 		},
 	}
+}
+
+func KeyAggregationN(pks *[]Ed25519Point, partyIdx uint8) *KeyAgg {
+	bn1 := new(big.Int).SetUint64(1)
+	xCoorVec := make([]big.Int, len(*pks))
+	for _, pk := range *pks {
+		xCoorVec = append(xCoorVec, *pk.BytesCompressedToBigInt())
+	}
+	fmt.Println("x_coor_vec=", xCoorVec)
+
+	hashVec := make([]big.Int, len(*pks))
+	for _, pk := range xCoorVec {
+		vec := []big.Int{}
+		vec = append(vec, *bn1)
+		vec = append(vec, pk)
+		for i, _ := range *pks {
+			vec = append(vec, xCoorVec[i])
+		}
+		fmt.Println("hash_vec xx=", vec)
+		// put all bytes together
+		bytes := []byte{}
+		for _, v := range vec {
+			for _, b := range v.Bytes() {
+				bytes = append(bytes, b)
+			}
+		}
+		h := sha512.Sum512(bytes)
+		hashVec = append(hashVec, *new(big.Int).SetBytes(h[:]))
+	}
+	fmt.Println("hash_vec=", hashVec)
+
+	apkVec := []*Ed25519Point{}
+	for i := 0; i < len(*pks); i++ {
+		pk := (*pks)[i]
+		hash := hashVec[i]
+		hashT := ECSFromBigInt(&hash)
+		a_i := pk.ECPMul(&hashT.Fe)
+		apkVec = append(apkVec, a_i)
+	}
+
+	sum := new(Ed25519Point)
+	for _, v := range apkVec {
+		sum = sum.ECPAddPoint(&v.Ge)
+	}
+	hash := ECSFromBigInt(&hashVec[partyIdx])
+	keyAgg := KeyAgg{
+		Apk:  *sum,
+		Hash: hash,
+	}
+	return &keyAgg
 }
 
 //type GE = Ed25519Point

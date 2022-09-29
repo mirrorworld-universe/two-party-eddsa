@@ -1,8 +1,8 @@
-package ed25519
+package eddsa
 
 import (
 	"fmt"
-	"github.com/agl/ed25519/edwards25519"
+	"main/internal/agl_ed25519/edwards25519"
 	"main/internal/utils"
 	"math/big"
 )

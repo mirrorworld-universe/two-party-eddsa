@@ -1,6 +1,6 @@
-package ed25519
+package eddsa
 
-import "github.com/agl/ed25519/edwards25519"
+import "main/internal/agl_ed25519/edwards25519"
 
 /**
 Utils for FieldElement
