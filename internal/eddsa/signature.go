@@ -71,17 +71,20 @@ func CreateEphemeralKeyAndCommit(key *Keypair, message []byte) (EphemeralKey, Si
 }
 
 func SigGetRTot(R []Ed25519Point) *Ed25519Point {
-	sum := new(Ed25519Point)
-	for _, v := range R {
-		sum = sum.ECPAddPoint(&v.Ge)
+	sum := R[0]
+	for i := 1; i < len(R); i++ {
+		temp := sum.ECPAddPoint(&R[i].Ge)
+		sum = *temp
 	}
-	return sum
+	return &sum
 }
 
 func SigK(R_tot *Ed25519Point, apk *Ed25519Point, message *[]byte) Ed25519Scalar {
+	messageBN := new(big.Int).SetBytes(*message)
 	temp := [][]byte{
 		R_tot.BytesCompressedToBigInt().Bytes(),
 		apk.BytesCompressedToBigInt().Bytes(),
+		messageBN.Bytes(),
 	}
 	k := sha512.Sum512(utils.ConcatSlices(temp))
 	kBN := new(big.Int).SetBytes(k[:])
@@ -93,6 +96,7 @@ func PartialSign(r *Ed25519Scalar, key *Keypair, k *Ed25519Scalar, a *Ed25519Sca
 	kMulSk := k.Mul(&key.ExtendedPrivateKey.PrivateKey)
 	kMulSkMulAi := kMulSk.Mul(a)
 	s := r.Add(&kMulSkMulAi)
+	println("kMulSk=", kMulSk.ToString(), " kMulSkMulAi=", kMulSkMulAi.ToString(), " s=", s.ToString())
 	return Signature{
 		R:      *R_tot,
 		SmallS: s,
@@ -102,7 +106,7 @@ func PartialSign(r *Ed25519Scalar, key *Keypair, k *Ed25519Scalar, a *Ed25519Sca
 func AddSignatureParts(sigs []Signature) Signature {
 	candidateR := sigs[0].R
 	for _, x := range sigs {
-		if x.R != candidateR {
+		if x.R.IsEqual(&candidateR) {
 			panic("R not equal")
 		}
 	}

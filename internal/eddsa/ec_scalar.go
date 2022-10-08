@@ -50,7 +50,7 @@ func (e *Ed25519Scalar) Mul(other *Ed25519Scalar) Ed25519Scalar {
 func (e *Ed25519Scalar) Add(other *Ed25519Scalar) Ed25519Scalar {
 	lhsBN := e.ToBigInt()
 	rhsBN := other.ToBigInt()
-	mul := utils.BigIntModMul(lhsBN, rhsBN, Q())
+	mul := utils.BigIntModAdd(lhsBN, rhsBN, Q())
 	mulFe := ECSFromBigInt(mul)
 	return mulFe
 }

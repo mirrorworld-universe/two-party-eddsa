@@ -136,6 +136,18 @@ func (e *Ed25519Point) BytesCompressedToBigInt() *big.Int {
 	return new(big.Int).SetBytes(bytes[:])
 }
 
+func (e *Ed25519Point) IsEqual(other *Ed25519Point) bool {
+	aByte := [32]byte{}
+	e.Ge.ToBytes(&aByte)
+
+	bByte := [32]byte{}
+	other.Ge.ToBytes(&aByte)
+
+	aBN := new(big.Int).SetBytes(aByte[:])
+	bBN := new(big.Int).SetBytes(bByte[:])
+	return aBN.String() == bBN.String()
+}
+
 func (e *Ed25519Point) ToString() string {
 	geBytes := [32]byte{}
 	e.Ge.ToBytes(&geBytes)

@@ -105,10 +105,10 @@ func BigIntModMul(a *big.Int, b *big.Int, mod *big.Int) *big.Int {
 }
 
 func BigIntModAdd(a *big.Int, b *big.Int, mod *big.Int) *big.Int {
-	a = a.Mod(a, mod)
-	b = b.Mod(b, mod)
+	a2 := a.Mod(a, mod)
+	b2 := b.Mod(b, mod)
 	temp := new(big.Int)
-	temp.Add(a, b)
+	temp.Add(a2, b2)
 	temp.Mod(temp, mod)
 	return temp
 }

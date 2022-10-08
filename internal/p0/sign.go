@@ -2,7 +2,9 @@ package p0
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 	"errors"
+	"main/internal/agl_ed25519/edwards25519"
 	"main/internal/eddsa"
 	"main/internal/utils"
 	"math/big"
@@ -109,6 +111,38 @@ func Sign(msg *string, clientKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg) {
 	if !isCommMatch {
 		panic(errors.New("commitment not match"))
 	}
+
+	// round 3
+	ri := []eddsa.Ed25519Point{
+		*serverSignSecondMsgR,
+		clientSignSecondMsg.R,
+	}
+	rTot := eddsa.SigGetRTot(ri)
+	println("rTot=", rTot.ToString())
+
+	msgHash2 := msgHash[:]
+	k := eddsa.SigK(rTot, &keyAgg.Apk, &msgHash2)
+	println("k=", k.ToString())
+
+	s2 := eddsa.PartialSign(
+		&clientEphemeralKey.SmallR,
+		clientKeypair,
+		&k,
+		&keyAgg.Hash,
+		rTot,
+	)
+	println("s2=", s2.ToString())
+
+	s := []eddsa.Signature{
+		serverSig,
+		s2,
+	}
+	sig := eddsa.AddSignatureParts(s)
+	RBytes := [32]byte{}
+	sig.R.Ge.ToBytes(&RBytes)
+	sBytes := [32]byte{}
+	edwards25519.FeToBytes(&sBytes, &sig.SmallS.Fe)
+	println("sig=", sig.ToString(), " R: ", hex.EncodeToString(RBytes[:]), " s:", hex.EncodeToString(sBytes[:]))
 
 	//clientPublicKeyBytes := [32]byte{}
 	//clientKeypair.PublicKey.Ge.ToBytes(&clientPublicKeyBytes)
