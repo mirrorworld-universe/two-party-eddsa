@@ -2,7 +2,6 @@ package eddsa
 
 import (
 	"crypto/sha512"
-	"main/internal/agl_ed25519/edwards25519"
 	"main/internal/utils"
 	"math/big"
 )
@@ -28,34 +27,46 @@ type SignSecondMsg struct {
 
 func CreateEphemeralKeyAndCommit(key *Keypair, message []byte) (EphemeralKey, SignFirstMsg, SignSecondMsg) {
 
-	prefixBytes := [32]byte{}
-	edwards25519.FeToBytes(&prefixBytes, &key.ExtendedPrivateKey.Prefix.Fe)
-	ecsRndBytes := [32]byte{}
-	edwards25519.FeToBytes(&ecsRndBytes, &ECSNewRandom().Fe)
+	prefixBN := key.ExtendedPrivateKey.Prefix.ToBigInt()
+	rnd, _ := new(big.Int).SetString("2030282828107764592039879086147438423373605693185722406299485015238703754456", 10)
+	//ecsRndBytes := [32]byte{}
+	//edwards25519.FeToBytes(&ecsRndBytes, &ECSNewRandom().Fe)
 	bytes := [][]byte{
 		new(big.Int).SetInt64(2).Bytes(),
-		prefixBytes[:],
+		prefixBN.Bytes(),
 		message,
-		ecsRndBytes[:],
+		//ecsRndBytes[:],
+		rnd.Bytes(),
 	}
+	println("1=", new(big.Int).SetInt64(2).String(),
+		"2=", prefixBN.String(),
+		"3=", new(big.Int).SetBytes(message).String(),
+		"4=", new(big.Int).SetBytes(rnd.Bytes()).String(),
+	)
 	concatBytes := utils.ConcatSlices(bytes)
 	r := sha512.Sum512(concatBytes)
 	rInt := new(big.Int).SetBytes(r[:])
 	r2 := ECSReverseBNToECS(rInt)
+	println("CreateEphemeralKeyAndCommit, r=", new(big.Int).SetBytes(r[:]).String(),
+		"r2=", r2.ToString(),
+	)
 
 	ecPoint := ECPointGenerator()
 	R := ecPoint.ECPMul(&r2.Fe)
 
-	hashCom := CreateCommitment(R.BytesCompressedToBigInt())
+	//hashCom := CreateCommitment(R.BytesCompressedToBigInt())
+	// hashcode
+	blindFactor, _ := new(big.Int).SetString("76517464160675767839318574288422328116452541159689926027818280551122440429139", 10)
+	commitment := CreateCommitmentWithUserDefinedRandomness(R.BytesCompressedToBigInt(), blindFactor)
 
 	return EphemeralKey{
 			SmallR: r2,
 			R:      *R,
 		}, SignFirstMsg{
-			Commitment: hashCom.Commitment,
+			Commitment: *commitment,
 		}, SignSecondMsg{
 			R:           *R,
-			BlindFactor: hashCom.BlindFactor,
+			BlindFactor: *blindFactor,
 		}
 }
 
@@ -104,4 +115,20 @@ func AddSignatureParts(sigs []Signature) Signature {
 		SmallS: *sum,
 		R:      sigs[0].R,
 	}
+}
+
+func (k *EphemeralKey) ToString() string {
+	return "{\"R\": " + k.R.ToString() + "," +
+		"\"SmallR\": " + k.SmallR.ToString() +
+		"}"
+}
+
+func (m *SignFirstMsg) ToString() string {
+	return "{\"Commitment\":" + m.Commitment.String() + "}"
+}
+
+func (m *SignSecondMsg) ToString() string {
+	return "{\"R\":" + m.R.ToString() + "," +
+		"\"BlindFactor\":" + m.BlindFactor.String() +
+		"}"
 }

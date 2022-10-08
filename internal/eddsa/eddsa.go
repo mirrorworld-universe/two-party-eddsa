@@ -25,11 +25,6 @@ const (
 	SECURITY_BITS = 256
 )
 
-type KeyAgg struct {
-	Apk  Ed25519Point
-	Hash Ed25519Scalar
-}
-
 // PublicKey is the type of Ed25519 public keys.
 type PublicKey []byte
 
@@ -194,8 +189,4 @@ func KeyAggregationN(pks *[]Ed25519Point, partyIdx uint8) *KeyAgg {
 		Hash: hash,
 	}
 	return &keyAgg
-}
-
-func (k *KeyAgg) ToString() string {
-	return "apk=" + k.Apk.ToString() + ", hash=" + k.Hash.ToString()
 }

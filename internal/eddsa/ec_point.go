@@ -116,6 +116,20 @@ func (e *Ed25519Point) ECPAddPoint(other *GeP3) *Ed25519Point {
 	return p
 }
 
+func ECPFromBytes(b *[32]byte) *Ed25519Point {
+	geFromBytes := GeP3FromBytesNegativeVartime(b)
+	geBytes := [32]byte{}
+	geFromBytes.ToBytes(&geBytes)
+	geFromBytes = GeP3FromBytesNegativeVartime(&geBytes)
+	eight := ECSFromBigInt(new(big.Int).SetInt64(8))
+	newPoint := Ed25519Point{
+		Purpose: "random",
+		Ge:      *geFromBytes,
+	}
+	newPoint2 := newPoint.ECPMul(&eight.Fe)
+	return newPoint2
+}
+
 func (e *Ed25519Point) BytesCompressedToBigInt() *big.Int {
 	bytes := &[32]byte{}
 	e.Ge.ToBytes(bytes)

@@ -7,7 +7,7 @@ import (
 	"math/big"
 )
 
-func KeyGen() {
+func KeyGen() (*eddsa.Keypair, *eddsa.KeyAgg) {
 	fmt.Println("*************Client*************")
 	rnd, _ := new(big.Int).SetString("5266194697103632731894445446481908111422432681065623019013231350200571873746", 10)
 	clientKeypair := eddsa.CreateKeyPairFromSeed(rnd)
@@ -32,6 +32,7 @@ func KeyGen() {
 	fmt.Println("key_agg=", keyAgg.ToString())
 
 	// @TODO save to db
+	return clientKeypair, keyAgg
 
 	// continue sign process
 }

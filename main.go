@@ -1,6 +1,8 @@
 package main
 
-import "main/internal/p0"
+import (
+	"main/internal/p0"
+)
 
 func toLittleEdian(a []byte) (b []byte) {
 	b = make([]byte, len(a))
@@ -18,5 +20,9 @@ func main() {
 	//publicKey, privateKey, _ := eddsa.GenerateKey(reader)
 	//fmt.Println(toLittleEdian(publicKey), privateKey)
 
-	p0.KeyGen()
+	clientKeypair, keyAgg := p0.KeyGen()
+
+	println("\n\n************ SIGN now *************")
+	msg := "hello"
+	p0.Sign(&msg, clientKeypair, keyAgg)
 }

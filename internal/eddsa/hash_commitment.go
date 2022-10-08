@@ -1,7 +1,7 @@
 package eddsa
 
+import "golang.org/x/crypto/sha3"
 import (
-	"crypto"
 	"main/internal/utils"
 	"math/big"
 )
@@ -13,14 +13,13 @@ type HashCommitment struct {
 }
 
 func CreateCommitmentWithUserDefinedRandomness(message *big.Int, blindingFactor *big.Int) *big.Int {
-	hasher := crypto.SHA3_256.New()
 	bytes := [][]byte{
 		message.Bytes(),
 		blindingFactor.Bytes(),
 	}
 	bytesAll := utils.ConcatSlices(bytes)
-	h := hasher.Sum(bytesAll)
-	return new(big.Int).SetBytes(h)
+	h := sha3.Sum256(bytesAll)
+	return new(big.Int).SetBytes(h[:])
 }
 
 func CreateCommitment(message *big.Int) *HashCommitment {

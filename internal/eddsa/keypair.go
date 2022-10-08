@@ -21,3 +21,7 @@ func CreateKeyPairFromSeed(seed *big.Int) *Keypair {
 	keypair, _ := GenerateKey(reader)
 	return keypair
 }
+
+func (kp *Keypair) ToString() string {
+	return "{\"PublicKey\"=" + kp.PublicKey.ToString() + ", \"ExtendedPrivateKey\": {\"Prefix\":" + kp.ExtendedPrivateKey.Prefix.ToString() + ", \"PrivateKey\": " + kp.ExtendedPrivateKey.PrivateKey.ToString()
+}
