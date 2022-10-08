@@ -5,6 +5,7 @@ import (
 	"crypto"
 	cryptorand "crypto/rand"
 	"crypto/sha512"
+	"errors"
 	"fmt"
 	"io"
 	"main/internal/utils"
@@ -97,7 +98,7 @@ func NewKeyFromSeed(seed []byte) Keypair {
 
 func newKeyFromSeed(privateKey, seed []byte) Keypair {
 	if l := len(seed); l != SeedSize {
-		panic("eddsa: bad seed length: " + strconv.Itoa(l))
+		panic(errors.New("eddsa: bad seed length: " + strconv.Itoa(l)))
 	}
 	ecPoint := ECPointGenerator()
 	ecPointBytes := [32]byte{}
@@ -189,4 +190,24 @@ func KeyAggregationN(pks *[]Ed25519Point, partyIdx uint8) *KeyAgg {
 		Hash: hash,
 	}
 	return &keyAgg
+}
+
+func Verify(signature *Signature, message *[]byte, publicKey *Ed25519Point) {
+	bytes := [][]byte{
+		signature.R.BytesCompressedToBigInt().Bytes(),
+		publicKey.BytesCompressedToBigInt().Bytes(),
+		*message,
+	}
+	temp := utils.ConcatSlices(bytes)
+	k := sha512.Sum512(temp)
+	kBN := new(big.Int).SetBytes(k[:])
+	kFe := ECSReverseBNToECS(kBN)
+	basePoint := ECPointGenerator()
+	kA := publicKey.ECPMul(&kFe.Fe)
+	sG := basePoint.ECPMul(&signature.SmallS.Fe)
+	R_Plus_kA := kA.ECPAddPoint(&signature.R.Ge)
+	println("kA=", kA.ToString(), " sG=", sG.ToString(), " R_Plus_kA=", R_Plus_kA.ToString())
+	if !R_Plus_kA.IsEqual(sG) {
+		panic(errors.New("signature invalid"))
+	}
 }

@@ -2,6 +2,7 @@ package eddsa
 
 import (
 	"crypto/sha512"
+	"errors"
 	"main/internal/utils"
 	"math/big"
 )
@@ -106,8 +107,8 @@ func PartialSign(r *Ed25519Scalar, key *Keypair, k *Ed25519Scalar, a *Ed25519Sca
 func AddSignatureParts(sigs []Signature) Signature {
 	candidateR := sigs[0].R
 	for _, x := range sigs {
-		if x.R.IsEqual(&candidateR) {
-			panic("R not equal")
+		if !x.R.IsEqual(&candidateR) {
+			panic(errors.New("R not equal"))
 		}
 	}
 	sum := new(Ed25519Scalar)

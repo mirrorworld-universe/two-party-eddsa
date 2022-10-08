@@ -141,7 +141,7 @@ func (e *Ed25519Point) IsEqual(other *Ed25519Point) bool {
 	e.Ge.ToBytes(&aByte)
 
 	bByte := [32]byte{}
-	other.Ge.ToBytes(&aByte)
+	other.Ge.ToBytes(&bByte)
 
 	aBN := new(big.Int).SetBytes(aByte[:])
 	bBN := new(big.Int).SetBytes(bByte[:])

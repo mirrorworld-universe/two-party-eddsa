@@ -144,6 +144,9 @@ func Sign(msg *string, clientKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg) {
 	edwards25519.FeToBytes(&sBytes, &sig.SmallS.Fe)
 	println("sig=", sig.ToString(), " R: ", hex.EncodeToString(RBytes[:]), " s:", hex.EncodeToString(sBytes[:]))
 
+	// final verify
+	eddsa.Verify(&sig, &msgHash2, &keyAgg.Apk)
+
 	//clientPublicKeyBytes := [32]byte{}
 	//clientKeypair.PublicKey.Ge.ToBytes(&clientPublicKeyBytes)
 	//
