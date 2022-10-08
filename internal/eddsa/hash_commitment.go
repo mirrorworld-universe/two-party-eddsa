@@ -30,3 +30,8 @@ func CreateCommitment(message *big.Int) *HashCommitment {
 		BlindFactor: *blindFactor,
 	}
 }
+
+func CheckCommitment(smallRToTest *Ed25519Point, blindFactor *big.Int, comm *big.Int) bool {
+	computedComm := CreateCommitmentWithUserDefinedRandomness(smallRToTest.BytesCompressedToBigInt(), blindFactor)
+	return computedComm == comm
+}

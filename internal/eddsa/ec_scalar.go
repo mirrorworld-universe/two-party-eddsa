@@ -68,6 +68,13 @@ func (e *Ed25519Scalar) ToBigInt() *big.Int {
 	return ret
 }
 
+func (e *Ed25519Scalar) ModInvert() *Ed25519Scalar {
+	selfBN := e.ToBigInt()
+	inv := new(big.Int).ModInverse(selfBN, Q())
+	invFe := ECSFromBigInt(inv)
+	return &invFe
+}
+
 func Q() *big.Int {
 	qBytesArray := [32]byte{237, 211, 245, 92, 26, 99, 18, 88, 214, 156, 247, 162, 222, 249, 222, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16}
 	lFe := new(edwards25519.FieldElement)

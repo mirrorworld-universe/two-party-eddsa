@@ -39,6 +39,45 @@ func Sign(msg *string, clientKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg) {
 	clientEphemeralKey, clientSignFirstMsg, clientSignSecondMsg := eddsa.CreateEphemeralKeyAndCommit(clientKeypair, msgHash[:])
 	println("clientEphemeralKey=", clientEphemeralKey.ToString(), ", clientSignFirstMsg=", clientSignFirstMsg.ToString()+", clientSignSecondMsg=", clientSignSecondMsg.ToString())
 
+	// now send clientSignFirstMsg, msgHash, client public key to p1, and receive serverFirstSignMsg
+	serverCommitment, _ := new(big.Int).SetString("84931746524459149992060349634228453990530694124359495037784716096273864068584", 10)
+	serverSignFirstMsg := eddsa.SignFirstMsg{
+		Commitment: *serverCommitment,
+	}
+	println("serverSignFirstMsg=", serverSignFirstMsg.ToString())
+
+	// round 2
+	// send clientSecondSignMsg to p1, get serverSignSecondMsg{R, blindFactor}
+	eight := eddsa.ECSFromBigInt(new(big.Int).SetInt64(8))
+	eightInverse := eight.ModInvert()
+	serverSignSecondMsgRBytes := [32]byte{
+		142, 144, 114, 134, 190, 107, 127, 90,
+		212, 252, 156, 101, 121, 82, 106, 155,
+		187, 60, 75, 220, 240, 209, 132, 217,
+		100, 78, 252, 14, 20, 73, 153, 54,
+	}
+	serverSignSecondMsgR := eddsa.ECPFromBytes(&serverSignSecondMsgRBytes)
+	serverSignSecondMsgR = serverSignSecondMsgR.ECPMul(&eightInverse.Fe)
+
+	temp1 := [32]byte{
+		169, 43, 89, 150, 255, 113, 182, 143,
+		232, 177, 192, 27, 76, 61, 36, 72,
+		121, 68, 213, 61, 241, 206, 20, 165,
+		112, 33, 80, 6, 72, 206, 30, 83,
+	}
+	serverSignSecondMsgBF := new(big.Int).SetBytes(temp1[:])
+	println("round2, server_sign_second_msg_R=", serverSignSecondMsgR.ToString(), ", serverSignSecondMsgBF=", serverSignSecondMsgBF.String())
+
+	temp2 := [32]byte{
+		29, 217, 173, 145, 214, 96, 225, 4,
+		252, 2, 4, 62, 123, 190, 12, 48,
+		63, 27, 252, 28, 1, 38, 137, 171,
+		140, 45, 56, 196, 174, 107, 224, 231,
+	}
+	severSigR := eddsa.ECPFromBytes(&temp2)
+	severSigR = severSigR.ECPMul(&eightInverse.Fe)
+	println("round2, serverSigR=", severSigR.ToString())
+
 	//clientPublicKeyBytes := [32]byte{}
 	//clientKeypair.PublicKey.Ge.ToBytes(&clientPublicKeyBytes)
 	//
