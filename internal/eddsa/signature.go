@@ -123,6 +123,12 @@ func (k *EphemeralKey) ToString() string {
 		"}"
 }
 
+func (m *Signature) ToString() string {
+	return "{\"R\":" + m.R.ToString() + "," +
+		"\"SmallS\":" + m.SmallS.ToString() +
+		"}"
+}
+
 func (m *SignFirstMsg) ToString() string {
 	return "{\"Commitment\":" + m.Commitment.String() + "}"
 }

@@ -2,7 +2,9 @@ package p0
 
 import (
 	"crypto/sha256"
+	"errors"
 	"main/internal/eddsa"
+	"main/internal/utils"
 	"math/big"
 )
 
@@ -74,9 +76,39 @@ func Sign(msg *string, clientKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg) {
 		63, 27, 252, 28, 1, 38, 137, 171,
 		140, 45, 56, 196, 174, 107, 224, 231,
 	}
-	severSigR := eddsa.ECPFromBytes(&temp2)
-	severSigR = severSigR.ECPMul(&eightInverse.Fe)
-	println("round2, serverSigR=", severSigR.ToString())
+	serverSigR := eddsa.ECPFromBytes(&temp2)
+	serverSigR = serverSigR.ECPMul(&eightInverse.Fe)
+	println("round2, serverSigR=", serverSigR.ToString())
+
+	temp3 := [32]byte{
+		124, 155, 253, 249, 189, 116, 9, 104,
+		139, 154, 108, 227, 90, 150, 239, 201,
+		172, 186, 250, 211, 86, 58, 200, 208,
+		138, 102, 125, 137, 46, 247, 205, 10,
+	}
+	temp33 := utils.ReverseByteSlice(temp3[:])
+	serverSigS := eddsa.ECSFromBigInt(new(big.Int).SetBytes(temp33))
+
+	serverSignSecondMsg := eddsa.SignSecondMsg{
+		R:           *serverSignSecondMsgR,
+		BlindFactor: *serverSignSecondMsgBF,
+	}
+	serverSig := eddsa.Signature{
+		R:      *serverSigR,
+		SmallS: serverSigS,
+	}
+	println("round2, serverSignSecondMsg=", serverSignSecondMsg.ToString(), " serverSig=", serverSig.ToString())
+
+	// check commiment
+	isCommMatch := eddsa.CheckCommitment(
+		&serverSignSecondMsg.R,
+		&serverSignSecondMsg.BlindFactor,
+		&serverSignFirstMsg.Commitment,
+	)
+
+	if !isCommMatch {
+		panic(errors.New("commitment not match"))
+	}
 
 	//clientPublicKeyBytes := [32]byte{}
 	//clientKeypair.PublicKey.Ge.ToBytes(&clientPublicKeyBytes)
