@@ -26,6 +26,7 @@ func NewRouter() *gin.Engine {
 	rP0 := router.Group("/p0")
 	{
 		rP0.GET("test", controller.Ping)
+		rP0.POST("keygen_round1", controller.P0KeyGenRound1)
 	}
 
 	// p1 related, server

@@ -5,15 +5,14 @@ import (
 	"main/global"
 	"main/internal/base_resp"
 	"main/internal/binding"
-	error_code "main/internal/err_code"
-	"main/model/request"
+	"main/model/rest"
 	"main/service/p1"
 	"math/big"
 	"net/http"
 )
 
 func P1KeyGenRound1(c *gin.Context) {
-	reqBody := request.P1KeygenRound1Req{}
+	reqBody := rest.P1KeygenRound1Req{}
 	if err := binding.BindJson(c, &reqBody); err != nil {
 		return
 	}
@@ -37,8 +36,8 @@ func P1KeyGenRound1(c *gin.Context) {
 		serverPubkeyBN, _ = p1.KeyGenRound1NoSeed(clientPubkeyBN)
 	}
 
-	resp := request.P1KeygenRound1Response{
+	resp := rest.P1KeygenRound1Response{
 		ServerPubkeyBN: serverPubkeyBN.String(),
 	}
-	base_resp.JsonResponse(c, error_code.NewBaseResp(), resp)
+	base_resp.JsonResponseSimple(c, resp)
 }

@@ -1,6 +1,7 @@
 package eddsa
 
 import (
+	"encoding/hex"
 	"errors"
 	"main/internal/agl_ed25519/edwards25519"
 	"main/utils"
@@ -162,4 +163,10 @@ func (e *Ed25519Point) ToString() string {
 	geBytes := [32]byte{}
 	e.Ge.ToBytes(&geBytes)
 	return "Purpose=" + e.Purpose + " ge.bytes=" + utils.BytesToStr(geBytes[:])
+}
+
+func (e *Ed25519Point) ToHexString() string {
+	bytes := [32]byte{}
+	e.Ge.ToBytes(&bytes)
+	return hex.EncodeToString(bytes[:])
 }

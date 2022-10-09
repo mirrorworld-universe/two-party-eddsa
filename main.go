@@ -59,7 +59,7 @@ func main() {
 		}
 	}()
 
-	fmt.Println(fmt.Sprintf("Server Listen: http://0.0.0.0%v", global.Config.Base.Port))
+	fmt.Println(fmt.Sprintf("Server Listen: rest://0.0.0.0%v", global.Config.Base.Port))
 	quit := make(chan os.Signal)
 	signal.Notify(quit, os.Interrupt)
 	<-quit

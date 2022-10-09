@@ -28,3 +28,8 @@ func JsonResponse(c *gin.Context, bsp *error_code.BaseResp, data interface{}) {
 	}
 	c.JSON(http.StatusOK, resp)
 }
+
+func JsonResponseSimple(c *gin.Context, data interface{}) {
+	resp := data
+	c.JSON(http.StatusOK, resp)
+}

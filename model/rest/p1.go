@@ -1,4 +1,4 @@
-package request
+package rest
 
 type P1KeygenRound1Req struct {
 	ClientPubkeyBN string `json:"client_pubkey_bn" binding:"required"`

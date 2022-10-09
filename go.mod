@@ -5,7 +5,9 @@ go 1.18
 require (
 	github.com/BurntSushi/toml v0.4.1
 	github.com/gin-gonic/gin v1.8.1
+	github.com/go-playground/validator/v10 v10.10.0
 	github.com/google/uuid v1.3.0
+	github.com/levigross/grequests v0.0.0-20190908174114-253788527a1a
 	github.com/penglongli/gin-metrics v0.1.10
 	github.com/sirupsen/logrus v1.8.1
 	golang.org/x/crypto v0.0.0-20221005025214-4161e89ecf1b
@@ -21,10 +23,10 @@ require (
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
-	github.com/go-playground/validator/v10 v10.10.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/goccy/go-json v0.9.7 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.3 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
