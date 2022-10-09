@@ -3,7 +3,7 @@ package eddsa
 import (
 	"crypto/sha512"
 	"errors"
-	"main/internal/utils"
+	"main/utils"
 	"math/big"
 )
 

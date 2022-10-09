@@ -1,8 +1,10 @@
 package eddsa
 
-import "golang.org/x/crypto/sha3"
 import (
-	"main/internal/utils"
+	"golang.org/x/crypto/sha3"
+	"main/utils"
+)
+import (
 	"math/big"
 )
 

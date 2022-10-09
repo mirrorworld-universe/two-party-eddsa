@@ -6,7 +6,7 @@ import (
 	"errors"
 	"main/internal/agl_ed25519/edwards25519"
 	"main/internal/eddsa"
-	"main/internal/utils"
+	"main/utils"
 	"math/big"
 )
 

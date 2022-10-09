@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"main/internal/utils"
+	"main/utils"
 	"math/big"
 	"strconv"
 )

@@ -1,19 +1,24 @@
 package main
 
 import (
-	"main/internal/eddsa"
-	"main/internal/p0"
-	"main/internal/p1"
-	"math/big"
+	"fmt"
+	"main/global"
+	"main/routes"
+	"net/http"
+	"os"
+	"os/signal"
 )
 
-func toLittleEdian(a []byte) (b []byte) {
-	b = make([]byte, len(a))
-	copy(b, a)
-	for i := 0; i < len(b)/2; i++ {
-		b[i], b[len(b)-i-1] = b[len(b)-i-1], b[i]
-	}
-	return b
+func closeResource() {
+	// mysql 和 mongo 无需主动关闭资源
+
+	// redis 连接池关闭
+	//redis.CloseRedisConnection()
+}
+
+func init() {
+	global.InitConfig()
+	global.InitLogger()
 }
 
 func main() {
@@ -23,8 +28,8 @@ func main() {
 	//publicKey, privateKey, _ := eddsa.GenerateKey(reader)
 	//fmt.Println(toLittleEdian(publicKey), privateKey)
 
-	clientKeypair, keyAgg := p0.KeyGen()
-	println("clientKeypair=", clientKeypair)
+	//clientKeypair, keyAgg := p0.KeyGen()
+	//println("clientKeypair=", clientKeypair)
 	//
 	//println("\n\n************ SIGN now *************")
 	//msg := "hello"
@@ -34,10 +39,28 @@ func main() {
 	//s := "7bf0d2eb8027a65988c43a4c79e70f3ab67eadf1a8a852b5cf34ef1ace192407"
 	//pubkey := "790c23f4a2f065fa4cebf77a005f75ad7a528c8de4ca64e4e5c681c17663514e"
 	//p0.Verify(&msg, &R, &s, &pubkey)
-	bn, _ := new(big.Int).SetString("2D282E87852DE00E981EFAAD08A9F435CF41CDFD7BD9EB3DBFBE08AE5537160", 16)
-	serverKeypair := eddsa.CreateKeyPairFromSeed(bn)
-	println("serverKeypair=", serverKeypair.ToString())
+	//bn, _ := new(big.Int).SetString("2D282E87852DE00E981EFAAD08A9F435CF41CDFD7BD9EB3DBFBE08AE5537160", 16)
+	//serverKeypair := eddsa.CreateKeyPairFromSeed(bn)
+	//println("serverKeypair=", serverKeypair.ToString())
+	//
+	//p1.Sign(serverKeypair, keyAgg)
 
-	p1.Sign(serverKeypair, keyAgg)
+	router := routes.NewRouter()
+	srv := &http.Server{
+		Addr:    global.Config.Base.Port,
+		Handler: router,
+	}
 
+	go func() {
+		err := srv.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			global.Logger.Error("Gin server start error:", err.Error())
+			panic(err.Error())
+		}
+	}()
+
+	fmt.Println(fmt.Sprintf("Server Listen: http://0.0.0.0%v", global.Config.Base.Port))
+	quit := make(chan os.Signal)
+	signal.Notify(quit, os.Interrupt)
+	<-quit
 }

@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"main/internal/eddsa"
-	"main/internal/utils"
+	"main/utils"
 	"math/big"
 )
 

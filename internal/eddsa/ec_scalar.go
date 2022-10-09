@@ -4,7 +4,7 @@ import (
 	cryptorand "crypto/rand"
 	"fmt"
 	"main/internal/agl_ed25519/edwards25519"
-	"main/internal/utils"
+	"main/utils"
 	"math/big"
 )
 

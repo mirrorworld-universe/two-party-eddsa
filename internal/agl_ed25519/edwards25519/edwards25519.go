@@ -353,7 +353,7 @@ func FeCombine(h *FieldElement, h0, h1, h2, h3, h4, h5, h6, h7, h8, h9 int64) {
 // Notes on implementation strategy:
 //
 // Using schoolbook multiplication.
-// Karatsuba would save a little in some cost models.
+// Karatsuba would save a little in some cost model.
 //
 // Most multiplications by 2 and 19 are 32-bit precomputations;
 // cheaper than 64-bit postcomputations.
