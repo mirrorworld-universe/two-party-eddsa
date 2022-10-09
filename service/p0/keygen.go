@@ -20,14 +20,18 @@ func KeyGenRound1NoSeed() (*eddsa.Keypair, *eddsa.KeyAgg) {
 	edwards25519.FeToBytes(&ecsRndBytes, &eddsa.ECSNewRandom().Fe)
 	sKSeed := new(big.Int).SetBytes(ecsRndBytes[:])
 
-	return keyGenRound1Internal(sKSeed)
+	return keyGenRound1Internal(sKSeed, nil)
 }
 
 func KeyGenRound1FromSeed(clientSKSeed *big.Int) (*eddsa.Keypair, *eddsa.KeyAgg) {
-	return keyGenRound1Internal(clientSKSeed)
+	return keyGenRound1Internal(clientSKSeed, nil)
 }
 
-func keyGenRound1Internal(clientSKSeed *big.Int) (*eddsa.Keypair, *eddsa.KeyAgg) {
+func KeyGenRound1FromBothSeed(clientSKSeed *big.Int, serverSKSeed *big.Int) (*eddsa.Keypair, *eddsa.KeyAgg) {
+	return keyGenRound1Internal(clientSKSeed, serverSKSeed)
+}
+
+func keyGenRound1Internal(clientSKSeed *big.Int, serverSKSeed *big.Int) (*eddsa.Keypair, *eddsa.KeyAgg) {
 	// generate client keypair
 	clientKeypair := eddsa.CreateKeyPairFromSeed(clientSKSeed)
 	clientPublicKeyBytes := [32]byte{}
@@ -36,6 +40,9 @@ func keyGenRound1Internal(clientSKSeed *big.Int) (*eddsa.Keypair, *eddsa.KeyAgg)
 	// ask for server public key
 	data := map[string]interface{}{
 		"client_pubkey_bn": new(big.Int).SetBytes(clientPublicKeyBytes[:]).String(),
+	}
+	if serverSKSeed != nil {
+		data["server_sk_seed"] = serverSKSeed.String()
 	}
 	response, err := grequests.Post("http://localhost:3000/p1/keygen_round1", &grequests.RequestOptions{
 		JSON:           data,
