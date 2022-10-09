@@ -130,6 +130,16 @@ func ECPFromBytes(b *[32]byte) *Ed25519Point {
 	return newPoint2
 }
 
+func NewECPSetFromBN(bn *big.Int) *Ed25519Point {
+	ge := new(edwards25519.ExtendedGroupElement)
+	ge.FromBytes((*[32]byte)(bn.Bytes()))
+	newPoint := Ed25519Point{
+		Purpose: "SetFromBN",
+		Ge:      *ge,
+	}
+	return &newPoint
+}
+
 func (e *Ed25519Point) BytesCompressedToBigInt() *big.Int {
 	bytes := &[32]byte{}
 	e.Ge.ToBytes(bytes)

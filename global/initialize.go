@@ -2,8 +2,8 @@ package global
 
 import (
 	"fmt"
+	"main/internal/logging"
 	"main/internal/settings"
-	"main/middleware/logging"
 	"os"
 )
 

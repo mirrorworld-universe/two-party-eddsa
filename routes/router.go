@@ -20,10 +20,18 @@ func NewRouter() *gin.Engine {
 	m.SetDuration([]float64{0.1, 0.3, 1.2, 5, 10})
 	m.Use(router)
 
-	// p0 related
+	router.Use(middleware.LoggerMiddleware())
+
+	// p0 related, client
 	rP0 := router.Group("/p0")
 	{
 		rP0.GET("test", controller.Ping)
+	}
+
+	// p1 related, server
+	rP1 := router.Group("/p1")
+	{
+		rP1.POST("keygen_round1", controller.P1KeyGenRound1)
 	}
 
 	return router

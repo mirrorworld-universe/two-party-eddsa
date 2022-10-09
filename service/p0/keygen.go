@@ -3,6 +3,7 @@ package p0
 import (
 	"encoding/hex"
 	"fmt"
+	"main/global"
 	"main/internal/eddsa"
 	"math/big"
 )
@@ -25,7 +26,7 @@ func KeyGen() (*eddsa.Keypair, *eddsa.KeyAgg) {
 		serverKeypair.PublicKey, // partyIdx=0
 		clientKeypair.PublicKey, // partyIdx=1
 	}
-	keyAgg := eddsa.KeyAggregationN(&pks, 1)
+	keyAgg := eddsa.KeyAggregationN(&pks, global.PARTY_INDEX_P0)
 	aggPubKeyBytes := [32]byte{}
 	keyAgg.Apk.Ge.ToBytes(&aggPubKeyBytes)
 	fmt.Println("aggregated_pukey=", hex.EncodeToString(aggPubKeyBytes[:]))
