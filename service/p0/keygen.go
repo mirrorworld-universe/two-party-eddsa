@@ -1,7 +1,6 @@
 package p0
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/levigross/grequests"
@@ -103,12 +102,10 @@ func KeyGen() (*eddsa.Keypair, *eddsa.KeyAgg) {
 	keyAgg := eddsa.KeyAggregationN(&pks, global.PARTY_INDEX_P0)
 	aggPubKeyBytes := [32]byte{}
 	keyAgg.Apk.Ge.ToBytes(&aggPubKeyBytes)
-	fmt.Println("aggregated_pukey=", hex.EncodeToString(aggPubKeyBytes[:]))
-	fmt.Println("key_agg=", keyAgg.ToString(), keyAgg.Apk.ToHexString())
-	fmt.Println("clientPubkeyBN=", new(big.Int).SetBytes(clientPublicKeyBytes[:]).String())
+	//fmt.Println("aggregated_pukey=", hex.EncodeToString(aggPubKeyBytes[:]))
+	//fmt.Println("key_agg=", keyAgg.ToString(), keyAgg.Apk.ToHexString())
+	//fmt.Println("clientPubkeyBN=", new(big.Int).SetBytes(clientPublicKeyBytes[:]).String())
 
 	// @TODO save to db
 	return clientKeypair, keyAgg
-
-	// continue sign process
 }

@@ -33,6 +33,7 @@ func NewRouter() *gin.Engine {
 	rP1 := router.Group("/p1")
 	{
 		rP1.POST("keygen_round1", controller.P1KeyGenRound1)
+		rP1.POST("sign_round1", controller.P1SignRound1)
 	}
 
 	return router

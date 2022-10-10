@@ -112,3 +112,17 @@ func BigIntModAdd(a *big.Int, b *big.Int, mod *big.Int) *big.Int {
 	temp.Mod(temp, mod)
 	return temp
 }
+
+func BigIntToByte32(n *big.Int) *[32]byte {
+	nByte := n.Bytes()
+	if len(nByte) < 32 {
+		// insert 0 in the begining
+		bytes := [][]byte{
+			make([]byte, 32-len(nByte)),
+			nByte,
+		}
+		nByte = ConcatSlices(bytes)
+	}
+	ret := nByte[0:32]
+	return (*[32]byte)(ret)
+}
