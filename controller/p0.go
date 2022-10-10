@@ -50,7 +50,7 @@ func P0KeyGenRound1(c *gin.Context) {
 
 	clientPubkeyByte := [32]byte{}
 	clientKeypair.PublicKey.Ge.ToBytes(&clientPubkeyByte)
-
+	println("keyagg=", keyAgg.ToString())
 	resp := rest.P0KeygenRound1Response{
 		ClientPubkeyBN: new(big.Int).SetBytes(clientPubkeyByte[:]).String(),
 		KeyAgg:         keyAgg.Apk.ToHexString(),

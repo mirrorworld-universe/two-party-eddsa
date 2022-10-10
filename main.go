@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"main/global"
 	"main/routes"
+	"main/service/p0"
 	"net/http"
 	"os"
 	"os/signal"
@@ -28,7 +29,7 @@ func main() {
 	//publicKey, privateKey, _ := eddsa.GenerateKey(reader)
 	//fmt.Println(toLittleEdian(publicKey), privateKey)
 
-	//clientKeypair, keyAgg := p0.KeyGen()
+	p0.KeyGen()
 	//println("clientKeypair=", clientKeypair)
 	//
 	//println("\n\n************ SIGN now *************")

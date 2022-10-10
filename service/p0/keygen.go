@@ -11,11 +11,13 @@ import (
 	"main/internal/agl_ed25519/edwards25519"
 	"main/internal/eddsa"
 	"main/model/rest"
+	"main/utils"
 	"math/big"
 	"time"
 )
 
 func KeyGenRound1NoSeed() (*eddsa.Keypair, *eddsa.KeyAgg) {
+	println("P0 KeyGenRound1NoSeed")
 	ecsRndBytes := [32]byte{}
 	edwards25519.FeToBytes(&ecsRndBytes, &eddsa.ECSNewRandom().Fe)
 	sKSeed := new(big.Int).SetBytes(ecsRndBytes[:])
@@ -24,22 +26,24 @@ func KeyGenRound1NoSeed() (*eddsa.Keypair, *eddsa.KeyAgg) {
 }
 
 func KeyGenRound1FromSeed(clientSKSeed *big.Int) (*eddsa.Keypair, *eddsa.KeyAgg) {
+	println("P0 KeyGenRound1FromSeed")
 	return keyGenRound1Internal(clientSKSeed, nil)
 }
 
 func KeyGenRound1FromBothSeed(clientSKSeed *big.Int, serverSKSeed *big.Int) (*eddsa.Keypair, *eddsa.KeyAgg) {
+	println("P0 KeyGenRound1FromBothSeed")
 	return keyGenRound1Internal(clientSKSeed, serverSKSeed)
 }
 
 func keyGenRound1Internal(clientSKSeed *big.Int, serverSKSeed *big.Int) (*eddsa.Keypair, *eddsa.KeyAgg) {
 	// generate client keypair
 	clientKeypair := eddsa.CreateKeyPairFromSeed(clientSKSeed)
-	clientPublicKeyBytes := [32]byte{}
-	clientKeypair.PublicKey.Ge.ToBytes(&clientPublicKeyBytes)
+	clientPubkeyBN := clientKeypair.PublicKey.BytesCompressedToBigInt()
+	println("clientPubkeyBN:", clientPubkeyBN.String())
 
 	// ask for server public key
 	data := map[string]interface{}{
-		"client_pubkey_bn": new(big.Int).SetBytes(clientPublicKeyBytes[:]).String(),
+		"client_pubkey_bn": clientPubkeyBN.String(),
 	}
 	if serverSKSeed != nil {
 		data["server_sk_seed"] = serverSKSeed.String()
@@ -62,7 +66,7 @@ func keyGenRound1Internal(clientSKSeed *big.Int, serverSKSeed *big.Int) (*eddsa.
 	}
 
 	serverPubkeyBN, _ := new(big.Int).SetString(resp.ServerPubkeyBN, 10)
-	serverPubkey := eddsa.ECPFromBytes((*[32]byte)(serverPubkeyBN.Bytes()))
+	serverPubkey := eddsa.NewECPSetFromBN(serverPubkeyBN)
 
 	// start aggregate
 	pks := []eddsa.Ed25519Point{
@@ -83,13 +87,14 @@ func KeyGen() (*eddsa.Keypair, *eddsa.KeyAgg) {
 	clientKeypair := eddsa.CreateKeyPairFromSeed(rnd)
 	clientPublicKeyBytes := [32]byte{}
 	clientKeypair.PublicKey.Ge.ToBytes(&clientPublicKeyBytes)
+	println("clientPublickey=", clientKeypair.PublicKey.ToString())
 
 	fmt.Println("*************Server*************")
 	rnd, _ = new(big.Int).SetString("1276567075174267627823301091809777026200725024551313144625936661005557002592", 10)
 	serverKeypair := eddsa.CreateKeyPairFromSeed(rnd)
 	serverPublicKeyBytes := [32]byte{}
 	serverKeypair.PublicKey.Ge.ToBytes(&serverPublicKeyBytes)
-
+	println("serverPublicKey=", utils.BytesToStr(serverPublicKeyBytes[:]))
 	// start aggregate
 	pks := []eddsa.Ed25519Point{
 		serverKeypair.PublicKey, // partyIdx=0
@@ -99,7 +104,8 @@ func KeyGen() (*eddsa.Keypair, *eddsa.KeyAgg) {
 	aggPubKeyBytes := [32]byte{}
 	keyAgg.Apk.Ge.ToBytes(&aggPubKeyBytes)
 	fmt.Println("aggregated_pukey=", hex.EncodeToString(aggPubKeyBytes[:]))
-	fmt.Println("key_agg=", keyAgg.ToString())
+	fmt.Println("key_agg=", keyAgg.ToString(), keyAgg.Apk.ToHexString())
+	fmt.Println("clientPubkeyBN=", new(big.Int).SetBytes(clientPublicKeyBytes[:]).String())
 
 	// @TODO save to db
 	return clientKeypair, keyAgg
