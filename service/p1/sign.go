@@ -6,6 +6,15 @@ import (
 	"math/big"
 )
 
+func SignRound1(serverKeypair *eddsa.Keypair, msgHash *big.Int) (*eddsa.EphemeralKey, *eddsa.SignFirstMsg, *eddsa.SignSecondMsg) {
+	serverEphemeralKey, serverSignFirstMsg, serverSignSecondMsg := eddsa.CreateEphemeralKeyAndCommit(serverKeypair, msgHash.Bytes())
+	return &serverEphemeralKey, &serverSignFirstMsg, &serverSignSecondMsg
+}
+
+func SignRound2() {
+
+}
+
 func Sign(serverKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg) {
 	//clientKeypair, keyAgg := tempLoadKey()
 	println("serverKeypair=", serverKeypair.ToString(), " keyAgg=", keyAgg.ToString())
