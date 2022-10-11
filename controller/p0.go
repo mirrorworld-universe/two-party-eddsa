@@ -8,6 +8,7 @@ import (
 	"main/internal/eddsa"
 	"main/model/rest"
 	"main/service/p0"
+	"main/utils"
 	"math/big"
 	"net/http"
 	"os"
@@ -56,6 +57,22 @@ func P0KeyGenRound1(c *gin.Context) {
 		KeyAgg:         keyAgg.Apk.ToHexString(),
 	}
 	base_resp.JsonResponseSimple(c, resp)
+}
+
+func P0SignRound1(c *gin.Context) {
+	reqBody := rest.P0SignRound1Req{}
+	if err := binding.BindJson(c, &reqBody); err != nil {
+		return
+	}
+
+	// this should be read from db by userId.
+	clientSKSeed, _ := new(big.Int).SetString(reqBody.ClientSKSeed, 10)
+	clientKeypair, keyAgg := p0.KeyGenRound1FromSeed(clientSKSeed)
+
+	msgHash := utils.StringToBigInt(&reqBody.Msg)
+	msgHashBN := msgHash.String()
+	p0.SignRound1(&msgHashBN, clientKeypair, keyAgg)
+	println("a")
 }
 
 func Ping(c *gin.Context) {

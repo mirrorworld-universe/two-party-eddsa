@@ -2,8 +2,13 @@ package utils
 
 import (
 	"crypto/rand"
+	"encoding/json"
+	"errors"
+	"github.com/levigross/grequests"
+	"io/ioutil"
 	"math/big"
 	"strconv"
+	"time"
 )
 
 func Reverse32Slice(a *[32]byte) {
@@ -51,6 +56,11 @@ func BytesToStr(s []byte) string {
 
 func StringToBytes(s *string) []byte {
 	return []byte(*s)
+}
+
+func StringToBigInt(s *string) *big.Int {
+	b := StringToBytes(s)
+	return new(big.Int).SetBytes(b)
 }
 
 func ConcatSlices(slices [][]byte) []byte {
@@ -125,4 +135,23 @@ func BigIntToByte32(n *big.Int) *[32]byte {
 	}
 	ret := nByte[0:32]
 	return (*[32]byte)(ret)
+}
+
+func SendReqAndParseResp[T any](url *string, data *map[string]interface{}, respSchema *T) error {
+	response, err := grequests.Post("http://localhost:3000/p1/keygen_round1", &grequests.RequestOptions{
+		JSON:           data,
+		RequestTimeout: time.Second * 5,
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+	})
+
+	body, err := ioutil.ReadAll(response.RawResponse.Body)
+	defer response.RawResponse.Body.Close()
+
+	err = json.Unmarshal(body, &respSchema)
+	if err != nil {
+		return errors.New("error parse p1Round1 response")
+	}
+	return nil
 }

@@ -3,20 +3,134 @@ package p0
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
+	"github.com/levigross/grequests"
+	"io/ioutil"
 	"main/internal/agl_ed25519/edwards25519"
 	"main/internal/eddsa"
+	"main/model/rest"
 	"main/utils"
 	"math/big"
+	"time"
 )
 
-func P0Sign(msg *string, clientKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg) {
+func SignRound1(msg *string, clientKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg) {
 	// round 1
 	msgHash := sha256.Sum256([]byte(*msg))
 	println("msgHash=", new(big.Int).SetBytes(msgHash[:]).String())
 
 	clientEphemeralKey, clientSignFirstMsg, clientSignSecondMsg := eddsa.CreateEphemeralKeyAndCommit(clientKeypair, msgHash[:])
 	println("clientEphemeralKey=", clientEphemeralKey.ToString(), ", clientSignFirstMsg=", clientSignFirstMsg.ToString()+", clientSignSecondMsg=", clientSignSecondMsg.ToString())
+
+	// send request to P1 to get commitment
+	url := "http://localhost:3000/p1/sign_round1"
+	data := map[string]interface{}{
+		"client_pubkey_bn": clientKeypair.PublicKey.BytesCompressedToBigInt().String(),
+		"msg_hash_bn":      new(big.Int).SetBytes(msgHash[:]).String(),
+	}
+	var resp rest.P1SignRound1Response
+	response, err := grequests.Post(url, &grequests.RequestOptions{
+		JSON:           data,
+		RequestTimeout: time.Second * 5,
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+	})
+
+	body, err := ioutil.ReadAll(response.RawResponse.Body)
+	defer response.RawResponse.Body.Close()
+
+	err = json.Unmarshal(body, &resp)
+	if err != nil {
+		panic(errors.New("error parse p1Round1 response"))
+	}
+	serverSignFirstMsgCommitment, _ := new(big.Int).SetString(resp.ServerSignFirstMsgCommitmentBN, 10)
+	println("p1 sign round1 resp, ServerSignFirstMsgCommitmentBN=", resp.ServerSignFirstMsgCommitmentBN)
+
+	// p1 round2
+	url = "http://localhost:3000/p1/sign_round2"
+	data = map[string]interface{}{
+		"client_pubkey_bn":                    clientKeypair.PublicKey.BytesCompressedToBigInt().String(),
+		"msg_hash_bn":                         new(big.Int).SetBytes(msgHash[:]).String(),
+		"client_sign_first_msg_commitment_bn": clientSignFirstMsg.Commitment.String(),
+		"client_sign_second_msg_r_bn":         clientSignSecondMsg.R.BytesCompressedToBigInt().String(),
+		"client_sign_second_msg_bf_32_bn":     new(big.Int).SetBytes(utils.BigintToBytes32(&clientSignSecondMsg.BlindFactor)).String(),
+	}
+	var resp2 rest.P1SignRound2Response
+	response, err = grequests.Post(url, &grequests.RequestOptions{
+		JSON:           data,
+		RequestTimeout: time.Second * 5,
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+	})
+
+	body, err = ioutil.ReadAll(response.RawResponse.Body)
+	defer response.RawResponse.Body.Close()
+
+	err = json.Unmarshal(body, &resp2)
+	if err != nil {
+		panic(errors.New("error parse p1Round1 response"))
+	}
+	println("p1 sign round2 resp, ServerSignSecondMsgR=", resp2.ServerSignSecondMsgR, ", ServerSignSecondMsgBF32=", resp2.ServerSignSecondMsgBF32, " ServerSigRBN=", resp2.ServerSigRBN, " ServerSigSmallSBN=", resp2.ServerSigSmallSBN)
+
+	serverSignSecondMsgRBN, _ := new(big.Int).SetString(resp2.ServerSignSecondMsgR, 10)
+	serverSignSecondMsgR := eddsa.NewECPSetFromBN(serverSignSecondMsgRBN)
+
+	ServerSignSecondMsgBF32BN, _ := new(big.Int).SetString(resp2.ServerSignSecondMsgBF32, 10)
+
+	serverSigRBN, _ := new(big.Int).SetString(resp2.ServerSigRBN, 10)
+	serverSigSmallSBN, _ := new(big.Int).SetString(resp2.ServerSigSmallSBN, 10)
+	serverSig := eddsa.Signature{
+		R:      *eddsa.NewECPSetFromBN(serverSigRBN),
+		SmallS: eddsa.ECSFromBigInt(serverSigSmallSBN),
+	}
+	// check commiment
+	isCommMatch := eddsa.CheckCommitment(
+		serverSignSecondMsgR,
+		ServerSignSecondMsgBF32BN,
+		serverSignFirstMsgCommitment,
+	)
+
+	if !isCommMatch {
+		panic(errors.New("commitment not match"))
+	}
+
+	// round 3
+	ri := []eddsa.Ed25519Point{
+		*serverSignSecondMsgR,
+		clientSignSecondMsg.R,
+	}
+	rTot := eddsa.SigGetRTot(ri)
+	println("rTot=", rTot.ToString())
+
+	msgHash2 := msgHash[:]
+	k := eddsa.SigK(rTot, &keyAgg.Apk, &msgHash2)
+	println("k=", k.ToString())
+
+	s2 := eddsa.PartialSign(
+		&clientEphemeralKey.SmallR,
+		clientKeypair,
+		&k,
+		&keyAgg.Hash,
+		rTot,
+	)
+	println("s2=", s2.ToString())
+
+	s := []eddsa.Signature{
+		serverSig,
+		s2,
+	}
+	sig := eddsa.AddSignatureParts(s)
+	RBytes := [32]byte{}
+	sig.R.Ge.ToBytes(&RBytes)
+	sBytes := [32]byte{}
+	edwards25519.FeToBytes(&sBytes, &sig.SmallS.Fe)
+	println("sig=", sig.ToString(), " R: ", hex.EncodeToString(RBytes[:]), " s:", hex.EncodeToString(sBytes[:]))
+
+	// final verify
+	eddsa.Verify(&sig, &msgHash2, &keyAgg.Apk)
 
 }
 

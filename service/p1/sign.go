@@ -6,13 +6,51 @@ import (
 	"math/big"
 )
 
-func SignRound1(serverKeypair *eddsa.Keypair, msgHash *big.Int) (*eddsa.EphemeralKey, *eddsa.SignFirstMsg, *eddsa.SignSecondMsg) {
-	serverEphemeralKey, serverSignFirstMsg, serverSignSecondMsg := eddsa.CreateEphemeralKeyAndCommit(serverKeypair, msgHash.Bytes())
-	return &serverEphemeralKey, &serverSignFirstMsg, &serverSignSecondMsg
+func SignRound1(serverKeypair *eddsa.Keypair, msgHash *big.Int) (*eddsa.EphemeralKey, *eddsa.SignFirstMsg) {
+	serverEphemeralKey, serverSignFirstMsg, _ := eddsa.CreateEphemeralKeyAndCommit(serverKeypair, msgHash.Bytes())
+	return &serverEphemeralKey, &serverSignFirstMsg
 }
 
-func SignRound2() {
+func SignRound2(
+	clientCommitment *big.Int,
+	serverKeypair *eddsa.Keypair,
+	msgHash *big.Int,
+	clientSignSecondMsgR *eddsa.Ed25519Point,
+	clientSignSecondMsgBF *big.Int,
+	keyAgg *eddsa.KeyAgg,
+) (*eddsa.SignSecondMsg, *eddsa.Signature) {
 
+	//// check commiment
+	isCommMatch := eddsa.CheckCommitment(
+		clientSignSecondMsgR,
+		clientSignSecondMsgBF,
+		clientCommitment,
+	)
+	if !isCommMatch {
+		panic(errors.New("commitment not match"))
+	}
+
+	serverEphemeralKey, _, serverSignSecondMsg := eddsa.CreateEphemeralKeyAndCommit(serverKeypair, msgHash.Bytes())
+	ri := []eddsa.Ed25519Point{
+		serverSignSecondMsg.R,
+		*clientSignSecondMsgR,
+	}
+	rTot := eddsa.SigGetRTot(ri)
+	println("rTot=", rTot.ToString())
+
+	msgHashBytes := msgHash.Bytes()
+	k := eddsa.SigK(rTot, &keyAgg.Apk, &msgHashBytes)
+	println("k=", k.ToString())
+
+	s1 := eddsa.PartialSign(
+		&serverEphemeralKey.SmallR,
+		serverKeypair,
+		&k,
+		&keyAgg.Hash,
+		rTot,
+	)
+	println("rTot=", rTot.ToString(), "k=", k.ToString(), "s1=", s1.ToString())
+	return &serverSignSecondMsg, &s1
 }
 
 func Sign(serverKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg) {
@@ -44,9 +82,11 @@ func Sign(serverKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg) {
 		223, 232, 74, 151, 45, 31, 77, 169,
 		236, 104, 205, 15, 156, 87, 239, 134,
 	}
-	clientPubkey := eddsa.ECPFromBytes(&temp3)
+
+	clientPubkeyBN := new(big.Int).SetBytes(temp3[:])
+	clientPubkey := eddsa.NewECPSetFromBN(clientPubkeyBN)
 	clientPubkey = clientPubkey.ECPMul(&eightInverse.Fe)
-	println("clientPubkey=", clientPubkey.ToString())
+	println("clientPubkey=", clientPubkey.ToString(), ", clientPubkeyBN=", clientPubkeyBN.String())
 
 	// round 1
 

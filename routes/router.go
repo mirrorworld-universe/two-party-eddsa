@@ -27,6 +27,7 @@ func NewRouter() *gin.Engine {
 	{
 		rP0.GET("test", controller.Ping)
 		rP0.POST("keygen_round1", controller.P0KeyGenRound1)
+		rP0.POST("sign_round1", controller.P0SignRound1)
 	}
 
 	// p1 related, server
@@ -34,6 +35,7 @@ func NewRouter() *gin.Engine {
 	{
 		rP1.POST("keygen_round1", controller.P1KeyGenRound1)
 		rP1.POST("sign_round1", controller.P1SignRound1)
+		rP1.POST("sign_round2", controller.P1SignRound2)
 	}
 
 	return router
