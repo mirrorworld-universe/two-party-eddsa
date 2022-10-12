@@ -51,7 +51,7 @@ func keyGenRound1Internal(clientSKSeed *big.Int, serverSKSeed *big.Int) (*eddsa.
 	if serverSKSeed != nil {
 		data["server_sk_seed"] = serverSKSeed.String()
 	}
-	response, err := grequests.Post("http://localhost:3000/p1/keygen_round1", &grequests.RequestOptions{
+	response, err := grequests.Post(global.Config.Base.P1Url+"/p1/keygen_round1", &grequests.RequestOptions{
 		JSON:           data,
 		RequestTimeout: time.Second * 5,
 		Headers: map[string]string{

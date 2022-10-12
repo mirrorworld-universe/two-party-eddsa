@@ -11,6 +11,8 @@ import (
 	validator2 "main/middleware/validator"
 	"main/model/db"
 	"main/routes"
+	"main/utils"
+	"math/big"
 	"net/http"
 	"os"
 	"os/signal"
@@ -64,7 +66,18 @@ func InitDB() {
 	dao.GetDbEngine().AutoMigrate(&db.MPCWallet{})
 }
 
+func test(b string) {
+	byte, _ := new(big.Int).SetString(b, 10)
+	println(utils.BytesToStr(byte.Bytes()))
+}
+
 func main() {
+	// ServerSignSecondMsgR=
+	//test("64483640907921859330156930639679621060811220324382896999100840459413651822902")
+	//ServerSigRBN=
+	//test("13501676355858580285518499925993993426720953276435438562170709642663523246311")
+	//ServerSigSmallSBN=
+	//test("56362407394169897738728800006116437916583347118160729121811866192132326280458")
 	//rnd, _ := new(big.Int).SetString("1276567075174267627823301091809777026200725024551313144625936661005557002592", 10)
 	//b := rnd.Bytes() // big endian byte
 	//reader := bytes.NewReader(b)

@@ -22,6 +22,15 @@ func KeyGenRound1NoSeed(userId *string, clientPubkeyBN *big.Int) (*big.Int, *edd
 	return keyGenRound1Internal(userId, clientPubkeyBN, serverSKSeed)
 }
 
+func GenerateKeyAgg(clientPubkey *eddsa.Ed25519Point, serverPubkey *eddsa.Ed25519Point, idx uint8) *eddsa.KeyAgg {
+	pks := []eddsa.Ed25519Point{
+		*serverPubkey,
+		*clientPubkey,
+	}
+	keyAgg := eddsa.KeyAggregationN(&pks, idx)
+	return keyAgg
+}
+
 /**
 Response: serverPubkey
 DB: serverKeypair, aggPubkey
@@ -34,11 +43,7 @@ func keyGenRound1Internal(userId *string, clientPubkeyBN *big.Int, serverSKSeed 
 	serverPubkeyBN := new(big.Int).SetBytes(serverPubkeyByte[:])
 
 	// start keyAgg
-	pks := []eddsa.Ed25519Point{
-		serverKeypair.PublicKey,
-		*clientPubkey,
-	}
-	keyAgg := eddsa.KeyAggregationN(&pks, global.PARTY_INDEX_P1)
+	keyAgg := GenerateKeyAgg(clientPubkey, &serverKeypair.PublicKey, global.PARTY_INDEX_P1)
 	println("serverPubKeyBN: ", serverPubkeyBN.String(), " keyAgg=", keyAgg.ToString())
 
 	// store serverSK, clientPubkey, keyAgg to db.

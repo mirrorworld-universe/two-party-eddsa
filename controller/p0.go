@@ -94,11 +94,11 @@ func P0SignRound1(c *gin.Context) {
 		base_resp.JsonResponse(c, bsp, nil)
 		return
 	}
-	data := map[string]interface{}{
-		"R": R,
-		"s": s,
+	data := rest.P0SignRound1Response{
+		R:      *R,
+		SmallS: *s,
 	}
-	base_resp.JsonResponse(c, bsp, data)
+	base_resp.JsonResponse(c, nil, data)
 }
 
 func Ping(c *gin.Context) {

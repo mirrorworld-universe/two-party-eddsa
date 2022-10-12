@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"main/finder"
+	"main/global"
 	"main/internal/agl_ed25519/edwards25519"
 	"main/internal/base_resp"
 	"main/internal/binding"
@@ -84,7 +85,8 @@ func P1SignRound2(c *gin.Context) {
 	ServerSKSeedBN, _ := new(big.Int).SetString(wallet.SeedBN, 10)
 	serverKeypair := eddsa.CreateKeyPairFromSeed(ServerSKSeedBN)
 	clientPubkeyBN, _ := new(big.Int).SetString(reqBody.ClientPubkeyBN, 10)
-	_, keyAgg := p1.KeyGenRound1FromSeed(&reqBody.UserId, clientPubkeyBN, ServerSKSeedBN)
+	clientPubkey := eddsa.NewECPSetFromBN(clientPubkeyBN)
+	keyAgg := p1.GenerateKeyAgg(clientPubkey, &serverKeypair.PublicKey, global.PARTY_INDEX_P1)
 
 	serverSignSecondMsg, s1 := p1.SignRound2(
 		clientCommitment,

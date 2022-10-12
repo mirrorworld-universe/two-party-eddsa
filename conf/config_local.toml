@@ -2,6 +2,8 @@
 Port = ":3000"
 Model = "debug"
 Env = "local"
+P0Url = "http://localhost:3000"
+P1Url = "http://localhost:3000"
 
 [log]
 Path = "log/mirror_backend.log"
