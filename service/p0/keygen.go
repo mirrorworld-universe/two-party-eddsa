@@ -77,16 +77,17 @@ func keyGenRound1Internal(clientSKSeed *big.Int, serverSKSeed *big.Int) (*eddsa.
 		clientKeypair.PublicKey, // partyIdx=1
 	}
 	keyAgg := eddsa.KeyAggregationN(&pks, global.PARTY_INDEX_P0)
-	aggPubKeyBytes := [32]byte{}
-	keyAgg.Apk.Ge.ToBytes(&aggPubKeyBytes)
+	println("[P0KeyGenRound1] keyagg=", keyAgg.ToString())
+	//aggPubKeyBytes := [32]byte{}
+	//keyAgg.Apk.Ge.ToBytes(&aggPubKeyBytes)
 
 	// save clientKeypair, keyAgg to db
 	wallet := db.MPCWallet{
 		UserId:       userId,
 		PartyIdx:     0,
 		SeedBN:       clientSKSeed.String(),
-		KeyAggAPKBN:  keyAgg.Apk.ToBigInt().String(),
-		KeyAggHashBN: keyAgg.Hash.ToBigInt().String(),
+		KeyAggAPKBN:  keyAgg.Apk.ToDirectBigInt().String(),
+		KeyAggHashBN: keyAgg.Hash.ToDirectBigInt().String(),
 	}
 	err = wallet.Create()
 	if err != nil {

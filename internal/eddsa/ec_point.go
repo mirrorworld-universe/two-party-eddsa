@@ -171,7 +171,7 @@ func (e *Ed25519Point) ToHexString() string {
 	return hex.EncodeToString(bytes[:])
 }
 
-func (e *Ed25519Point) ToBigInt() *big.Int {
+func (e *Ed25519Point) ToDirectBigInt() *big.Int {
 	bytes := [32]byte{}
 	e.Ge.ToBytes(&bytes)
 	return new(big.Int).SetBytes(bytes[:])

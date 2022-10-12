@@ -55,6 +55,12 @@ func (e *Ed25519Scalar) Add(other *Ed25519Scalar) Ed25519Scalar {
 	return mulFe
 }
 
+func (e *Ed25519Scalar) ToDirectBigInt() *big.Int {
+	feBytes := [32]byte{}
+	edwards25519.FeToBytes(&feBytes, &e.Fe)
+	return new(big.Int).SetBytes(feBytes[:])
+}
+
 func (e *Ed25519Scalar) ToBigInt() *big.Int {
 	feBytes := [32]byte{}
 	edwards25519.FeToBytes(&feBytes, &e.Fe)

@@ -98,7 +98,7 @@ func P0SignRound1(c *gin.Context) {
 		R:      *R,
 		SmallS: *s,
 	}
-	base_resp.JsonResponse(c, nil, data)
+	base_resp.JsonResponse(c, bsp, data)
 }
 
 func Ping(c *gin.Context) {

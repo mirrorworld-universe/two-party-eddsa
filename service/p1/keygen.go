@@ -51,8 +51,8 @@ func keyGenRound1Internal(userId *string, clientPubkeyBN *big.Int, serverSKSeed 
 		UserId:       *userId,
 		PartyIdx:     1,
 		SeedBN:       serverSKSeed.String(),
-		KeyAggAPKBN:  keyAgg.Apk.ToBigInt().String(),
-		KeyAggHashBN: keyAgg.Hash.ToBigInt().String(),
+		KeyAggAPKBN:  keyAgg.Apk.ToDirectBigInt().String(),
+		KeyAggHashBN: keyAgg.Hash.ToDirectBigInt().String(),
 	}
 	wallet.Create()
 
