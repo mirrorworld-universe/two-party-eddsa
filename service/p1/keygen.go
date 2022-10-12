@@ -8,12 +8,12 @@ import (
 )
 
 func KeyGenRound1FromSeed(clientPubkeyBN *big.Int, serverSKSeed *big.Int) (*big.Int, *eddsa.KeyAgg) {
-	println("P1 KeyGenRound1FromSeed=", serverSKSeed.String())
+	//println("P1 KeyGenRound1FromSeed=", serverSKSeed.String())
 	return keyGenRound1Internal(clientPubkeyBN, serverSKSeed)
 }
 
 func KeyGenRound1NoSeed(clientPubkeyBN *big.Int) (*big.Int, *eddsa.KeyAgg) {
-	println("P1 KeyGenRound1NoSeed")
+	//println("P1 KeyGenRound1NoSeed")
 	ecsRndBytes := [32]byte{}
 	edwards25519.FeToBytes(&ecsRndBytes, &eddsa.ECSNewRandom().Fe)
 	serverSKSeed := new(big.Int).SetBytes(ecsRndBytes[:])

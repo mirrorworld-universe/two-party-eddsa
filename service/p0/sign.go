@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func SignRound1(msg *string, clientKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg) {
+func SignRound1(msg *string, clientKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg) (*string, *string, *error) {
 	// round 1
 	msgHash := sha256.Sum256([]byte(*msg))
 	println("msgHash=", new(big.Int).SetBytes(msgHash[:]).String())
@@ -46,7 +46,7 @@ func SignRound1(msg *string, clientKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg)
 		panic(errors.New("error parse p1Round1 response"))
 	}
 	serverSignFirstMsgCommitment, _ := new(big.Int).SetString(resp.ServerSignFirstMsgCommitmentBN, 10)
-	println("p1 sign round1 resp, ServerSignFirstMsgCommitmentBN=", resp.ServerSignFirstMsgCommitmentBN)
+	println("[P0SignRound1] p1_sign_round1 resp, ServerSignFirstMsgCommitmentBN=", resp.ServerSignFirstMsgCommitmentBN)
 
 	// p1 round2
 	url = "http://localhost:3000/p1/sign_round2"
@@ -73,7 +73,7 @@ func SignRound1(msg *string, clientKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg)
 	if err != nil {
 		panic(errors.New("error parse p1Round1 response"))
 	}
-	println("p1 sign round2 resp, ServerSignSecondMsgR=", resp2.ServerSignSecondMsgR, ", ServerSignSecondMsgBF32=", resp2.ServerSignSecondMsgBF32, " ServerSigRBN=", resp2.ServerSigRBN, " ServerSigSmallSBN=", resp2.ServerSigSmallSBN)
+	println("[P0SignRound1]p1_sign_round2 resp, ServerSignSecondMsgR=", resp2.ServerSignSecondMsgR, ", ServerSignSecondMsgBF32=", resp2.ServerSignSecondMsgBF32, " ServerSigRBN=", resp2.ServerSigRBN, " ServerSigSmallSBN=", resp2.ServerSigSmallSBN)
 
 	serverSignSecondMsgRBN, _ := new(big.Int).SetString(resp2.ServerSignSecondMsgR, 10)
 	serverSignSecondMsgR := eddsa.NewECPSetFromBN(serverSignSecondMsgRBN)
@@ -84,8 +84,9 @@ func SignRound1(msg *string, clientKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg)
 	serverSigSmallSBN, _ := new(big.Int).SetString(resp2.ServerSigSmallSBN, 10)
 	serverSig := eddsa.Signature{
 		R:      *eddsa.NewECPSetFromBN(serverSigRBN),
-		SmallS: eddsa.ECSFromBigInt(serverSigSmallSBN),
+		SmallS: *eddsa.NewECSSetFromBN(serverSigSmallSBN),
 	}
+	println("[P0SignRound1]serverSig=", serverSig.ToString())
 	// check commiment
 	isCommMatch := eddsa.CheckCommitment(
 		serverSignSecondMsgR,
@@ -103,11 +104,11 @@ func SignRound1(msg *string, clientKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg)
 		clientSignSecondMsg.R,
 	}
 	rTot := eddsa.SigGetRTot(ri)
-	println("rTot=", rTot.ToString())
+	println("[P0SignRound1] rTot=", rTot.ToString())
 
 	msgHash2 := msgHash[:]
 	k := eddsa.SigK(rTot, &keyAgg.Apk, &msgHash2)
-	println("k=", k.ToString())
+	println("[P0SignRound1] k=", k.ToString(), " keyAgg=", keyAgg.ToString(), " msgHash=", new(big.Int).SetBytes(msgHash2).String())
 
 	s2 := eddsa.PartialSign(
 		&clientEphemeralKey.SmallR,
@@ -116,7 +117,7 @@ func SignRound1(msg *string, clientKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg)
 		&keyAgg.Hash,
 		rTot,
 	)
-	println("s2=", s2.ToString())
+	println("[P0SignRound1] s2=", s2.ToString())
 
 	s := []eddsa.Signature{
 		serverSig,
@@ -127,11 +128,17 @@ func SignRound1(msg *string, clientKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg)
 	sig.R.Ge.ToBytes(&RBytes)
 	sBytes := [32]byte{}
 	edwards25519.FeToBytes(&sBytes, &sig.SmallS.Fe)
-	println("sig=", sig.ToString(), " R: ", hex.EncodeToString(RBytes[:]), " s:", hex.EncodeToString(sBytes[:]))
+	println("[P0SignRound1] sig=", sig.ToString(), " R: ", hex.EncodeToString(RBytes[:]), " s:", hex.EncodeToString(sBytes[:]))
 
 	// final verify
-	eddsa.Verify(&sig, &msgHash2, &keyAgg.Apk)
+	R := hex.EncodeToString(RBytes[:])
+	smallS := hex.EncodeToString(sBytes[:])
+	if isMatch := eddsa.Verify(&sig, &msgHash2, &keyAgg.Apk); isMatch {
+		return &R, &smallS, nil
+	}
 
+	err = errors.New("invalid_signature")
+	return nil, nil, &err
 }
 
 func Sign(msg *string, clientKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg) {

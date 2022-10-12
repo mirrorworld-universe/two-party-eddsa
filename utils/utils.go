@@ -58,11 +58,6 @@ func StringToBytes(s *string) []byte {
 	return []byte(*s)
 }
 
-func StringToBigInt(s *string) *big.Int {
-	b := StringToBytes(s)
-	return new(big.Int).SetBytes(b)
-}
-
 func ConcatSlices(slices [][]byte) []byte {
 	var totalLen int
 	for _, s := range slices {

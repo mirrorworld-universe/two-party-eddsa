@@ -103,9 +103,9 @@ func newKeyFromSeed(privateKey, seed []byte) Keypair {
 	ecPoint := ECPointGenerator()
 	ecPointBytes := [32]byte{}
 	ecPoint.Ge.ToBytes(&ecPointBytes)
-	fmt.Println("ecPoint=", ecPointBytes)
+	//fmt.Println("ecPoint=", ecPointBytes)
 	h := sha512.Sum512(seed)
-	fmt.Println("sha512 hash=", h)
+	//fmt.Println("sha512 hash=", h)
 
 	prefix := make([]byte, 32)
 	privateKey = make([]byte, 32)
@@ -119,7 +119,7 @@ func newKeyFromSeed(privateKey, seed []byte) Keypair {
 
 	privateKeyBN := new(big.Int).SetBytes(privateKey)
 	privateKeyScalar := ECSFromBigInt(privateKeyBN)
-	fmt.Print("private key 2=")
+	//fmt.Print("private key 2=")
 	privateKeyScalar.Print()
 
 	prefixBN := new(big.Int).SetBytes(prefix)
@@ -128,7 +128,7 @@ func newKeyFromSeed(privateKey, seed []byte) Keypair {
 
 	publicKeyBytes := [32]byte{}
 	publicKey.Ge.ToBytes(&publicKeyBytes)
-	fmt.Println("publicKey=", publicKeyBytes)
+	//fmt.Println("publicKey=", publicKeyBytes)
 
 	return Keypair{
 		PublicKey: *publicKey,
@@ -192,7 +192,7 @@ func KeyAggregationN(pks *[]Ed25519Point, partyIdx uint8) *KeyAgg {
 	return &keyAgg
 }
 
-func Verify(signature *Signature, message *[]byte, publicKey *Ed25519Point) {
+func Verify(signature *Signature, message *[]byte, publicKey *Ed25519Point) bool {
 	bytes := [][]byte{
 		signature.R.BytesCompressedToBigInt().Bytes(),
 		publicKey.BytesCompressedToBigInt().Bytes(),
@@ -207,7 +207,5 @@ func Verify(signature *Signature, message *[]byte, publicKey *Ed25519Point) {
 	sG := basePoint.ECPMul(&signature.SmallS.Fe)
 	R_Plus_kA := kA.ECPAddPoint(&signature.R.Ge)
 	println("kA=", kA.ToString(), " sG=", sG.ToString(), " R_Plus_kA=", R_Plus_kA.ToString())
-	if !R_Plus_kA.IsEqual(sG) {
-		panic(errors.New("signature invalid"))
-	}
+	return R_Plus_kA.IsEqual(sG)
 }

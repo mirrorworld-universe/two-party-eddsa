@@ -25,12 +25,12 @@ func KeyGenRound1NoSeed() (*eddsa.Keypair, *eddsa.KeyAgg) {
 }
 
 func KeyGenRound1FromSeed(clientSKSeed *big.Int) (*eddsa.Keypair, *eddsa.KeyAgg) {
-	println("P0 KeyGenRound1FromSeed")
+	//println("P0 KeyGenRound1FromSeed")
 	return keyGenRound1Internal(clientSKSeed, nil)
 }
 
 func KeyGenRound1FromBothSeed(clientSKSeed *big.Int, serverSKSeed *big.Int) (*eddsa.Keypair, *eddsa.KeyAgg) {
-	println("P0 KeyGenRound1FromBothSeed")
+	//println("P0 KeyGenRound1FromBothSeed")
 	return keyGenRound1Internal(clientSKSeed, serverSKSeed)
 }
 
@@ -38,7 +38,7 @@ func keyGenRound1Internal(clientSKSeed *big.Int, serverSKSeed *big.Int) (*eddsa.
 	// generate client keypair
 	clientKeypair := eddsa.CreateKeyPairFromSeed(clientSKSeed)
 	clientPubkeyBN := clientKeypair.PublicKey.BytesCompressedToBigInt()
-	println("clientPubkeyBN:", clientPubkeyBN.String())
+	//println("clientPubkeyBN:", clientPubkeyBN.String())
 
 	// ask for server public key
 	data := map[string]interface{}{

@@ -86,6 +86,16 @@ func Q() *big.Int {
 	return lFeScalar.ToBigInt()
 }
 
+func NewECSSetFromBN(bn *big.Int) *Ed25519Scalar {
+	lFe := new(edwards25519.FieldElement)
+	edwards25519.FeFromBytes(lFe, (*[32]byte)(bn.Bytes()))
+	lFeScalar := Ed25519Scalar{
+		Purpose: "NewECSSetFromBN",
+		Fe:      *lFe,
+	}
+	return &lFeScalar
+}
+
 //func from(n *big.Int) *Ed25519Scalar {
 //	n_bytes := n.Bytes()
 //	n_bytes_64 = n_bytes[:]

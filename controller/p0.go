@@ -1,14 +1,15 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"main/global"
 	"main/internal/base_resp"
 	"main/internal/binding"
 	"main/internal/eddsa"
+	error_code "main/internal/err_code"
 	"main/model/rest"
 	"main/service/p0"
-	"main/utils"
 	"math/big"
 	"net/http"
 	"os"
@@ -67,12 +68,21 @@ func P0SignRound1(c *gin.Context) {
 
 	// this should be read from db by userId.
 	clientSKSeed, _ := new(big.Int).SetString(reqBody.ClientSKSeed, 10)
-	clientKeypair, keyAgg := p0.KeyGenRound1FromSeed(clientSKSeed)
+	ServerSKSeedBN, _ := new(big.Int).SetString("1276567075174267627823301091809777026200725024551313144625936661005557002592", 10)
+	clientKeypair, keyAgg := p0.KeyGenRound1FromBothSeed(clientSKSeed, ServerSKSeedBN)
 
-	msgHash := utils.StringToBigInt(&reqBody.Msg)
-	msgHashBN := msgHash.String()
-	p0.SignRound1(&msgHashBN, clientKeypair, keyAgg)
-	println("a")
+	R, s, err := p0.SignRound1(&reqBody.Msg, clientKeypair, keyAgg)
+	bsp := error_code.NewBaseResp()
+	if err != nil {
+		bsp.SetMsg(error_code.InternalError, fmt.Sprintf("%v", err))
+		base_resp.JsonResponse(c, bsp, nil)
+		return
+	}
+	data := map[string]interface{}{
+		"R": R,
+		"s": s,
+	}
+	base_resp.JsonResponse(c, bsp, data)
 }
 
 func Ping(c *gin.Context) {

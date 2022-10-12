@@ -8,6 +8,7 @@ import (
 
 func SignRound1(serverKeypair *eddsa.Keypair, msgHash *big.Int) (*eddsa.EphemeralKey, *eddsa.SignFirstMsg) {
 	serverEphemeralKey, serverSignFirstMsg, _ := eddsa.CreateEphemeralKeyAndCommit(serverKeypair, msgHash.Bytes())
+	//println("P1_sign_round1: serverEphemeralKey=", serverEphemeralKey.ToString(), " serverSignFirstMsg=", serverSignFirstMsg.ToString())
 	return &serverEphemeralKey, &serverSignFirstMsg
 }
 
@@ -31,16 +32,17 @@ func SignRound2(
 	}
 
 	serverEphemeralKey, _, serverSignSecondMsg := eddsa.CreateEphemeralKeyAndCommit(serverKeypair, msgHash.Bytes())
+	println("[P1SignRound2] serverSignSecondMsg=", serverSignSecondMsg.ToString())
 	ri := []eddsa.Ed25519Point{
 		serverSignSecondMsg.R,
 		*clientSignSecondMsgR,
 	}
 	rTot := eddsa.SigGetRTot(ri)
-	println("rTot=", rTot.ToString())
+	println("[P1SignRound2] rTot=", rTot.ToString())
 
 	msgHashBytes := msgHash.Bytes()
 	k := eddsa.SigK(rTot, &keyAgg.Apk, &msgHashBytes)
-	println("k=", k.ToString())
+	//println("[P1SignRound2] k=", k.ToString())
 
 	s1 := eddsa.PartialSign(
 		&serverEphemeralKey.SmallR,
@@ -49,7 +51,7 @@ func SignRound2(
 		&keyAgg.Hash,
 		rTot,
 	)
-	println("rTot=", rTot.ToString(), "k=", k.ToString(), "s1=", s1.ToString())
+	println("[P1SignRound2] rTot=", rTot.ToString(), "k=", k.ToString(), "s1=", s1.ToString())
 	return &serverSignSecondMsg, &s1
 }
 

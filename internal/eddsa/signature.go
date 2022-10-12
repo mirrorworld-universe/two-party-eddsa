@@ -39,18 +39,18 @@ func CreateEphemeralKeyAndCommit(key *Keypair, message []byte) (EphemeralKey, Si
 		//ecsRndBytes[:],
 		rnd.Bytes(),
 	}
-	println("1=", new(big.Int).SetInt64(2).String(),
-		"2=", prefixBN.String(),
-		"3=", new(big.Int).SetBytes(message).String(),
-		"4=", new(big.Int).SetBytes(rnd.Bytes()).String(),
-	)
+	//println("1=", new(big.Int).SetInt64(2).String(),
+	//	"2=", prefixBN.String(),
+	//	"3=", new(big.Int).SetBytes(message).String(),
+	//	"4=", new(big.Int).SetBytes(rnd.Bytes()).String(),
+	//)
 	concatBytes := utils.ConcatSlices(bytes)
 	r := sha512.Sum512(concatBytes)
 	rInt := new(big.Int).SetBytes(r[:])
 	r2 := ECSReverseBNToECS(rInt)
-	println("CreateEphemeralKeyAndCommit, r=", new(big.Int).SetBytes(r[:]).String(),
-		"r2=", r2.ToString(),
-	)
+	//println("CreateEphemeralKeyAndCommit, r=", new(big.Int).SetBytes(r[:]).String(),
+	//	"r2=", r2.ToString(),
+	//)
 
 	ecPoint := ECPointGenerator()
 	R := ecPoint.ECPMul(&r2.Fe)

@@ -27,7 +27,7 @@ func P1KeyGenRound1(c *gin.Context) {
 	} else {
 		serverPubkeyBN, keyAgg = p1.KeyGenRound1NoSeed(clientPubkeyBN)
 	}
-	println("server keyAgg=", keyAgg.ToString())
+	println("[P1KeyGenRound1] server keyAgg=", keyAgg.ToString())
 	resp := rest.P1KeygenRound1Response{
 		ServerPubkeyBN: serverPubkeyBN.String(),
 	}
@@ -43,13 +43,15 @@ func P1SignRound1(c *gin.Context) {
 	msgHash, _ := new(big.Int).SetString(reqBody.MsgHashBN, 10)
 	clientPubkeyBN, _ := new(big.Int).SetString(reqBody.ClientPubkeyBN, 10)
 	clientPubkey := eddsa.NewECPSetFromBN(clientPubkeyBN)
-	println("clientPubkey=", clientPubkey.ToString())
+	println("[P1SignRound1] clientPubkey=", clientPubkey.ToString())
+	println("[P1SignRound1] msgHash=", msgHash.String())
 
 	// hardcode
 	ServerSKSeedBN, _ := new(big.Int).SetString("1276567075174267627823301091809777026200725024551313144625936661005557002592", 10)
 	serverKeypair := eddsa.CreateKeyPairFromSeed(ServerSKSeedBN)
 	serverEphemeralKey, serverSignFirstMsg := p1.SignRound1(serverKeypair, msgHash)
-	println("serverEphemeralKey=", serverEphemeralKey.ToString(), "serverSignFirstMsg=", serverSignFirstMsg.ToString())
+	println("[P1SignRound1] serverKeypair=", serverKeypair.ToString())
+	println("[P1SignRound1] serverEphemeralKey=", serverEphemeralKey.ToString(), "serverSignFirstMsg=", serverSignFirstMsg.ToString())
 
 	resp := rest.P1SignRound1Response{
 		ServerSignFirstMsgCommitmentBN: serverSignFirstMsg.Commitment.String(),
