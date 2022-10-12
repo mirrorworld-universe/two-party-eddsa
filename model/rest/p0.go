@@ -9,12 +9,13 @@ type P0KeygenRound1Req struct {
 type P0KeygenRound1Response struct {
 	ClientPubkeyBN string `json:"client_pubkey_bn" binding:"required,validbn"`
 	KeyAgg         string `json:"key_agg" binding:"required"`
+	UserId         string `json:"user_id" binding:"required"`
 }
 
 // sign
 type P0SignRound1Req struct {
-	ClientSKSeed string `json:"client_sk_seed"`
-	Msg          string `json:"msg" binding:"required"`
+	UserId string `json:"user_id" binding:"required"`
+	Msg    string `json:"msg" binding:"required"`
 }
 
 type P0SignRound1Response struct {

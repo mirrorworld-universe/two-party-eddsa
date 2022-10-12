@@ -9,12 +9,12 @@ MaxSize = 20
 MaxAge = 7
 Backups = 10
 
-# [db]
-# Host = "localhost"
-# Port = 3306
-# UserName = "root"
-# Password = "123456"
-# DBName = "mirror_market"
-# MaxIdleConns = 10
-# MaxOpenConns = 30
-# MaxLifetime = 10
+[db]
+Host = "localhost"
+Port = 3306
+UserName = "root"
+Password = "123456"
+DBName = "mw_dev"
+MaxIdleConns = 10
+MaxOpenConns = 30
+MaxLifetime = 10

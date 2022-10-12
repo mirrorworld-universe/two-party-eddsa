@@ -9,13 +9,15 @@ import (
 	"main/global"
 	"main/internal/agl_ed25519/edwards25519"
 	"main/internal/eddsa"
+	"main/internal/uuid"
+	"main/model/db"
 	"main/model/rest"
 	"main/utils"
 	"math/big"
 	"time"
 )
 
-func KeyGenRound1NoSeed() (*eddsa.Keypair, *eddsa.KeyAgg) {
+func KeyGenRound1NoSeed() (*eddsa.Keypair, *eddsa.KeyAgg, *db.MPCWallet, *error) {
 	println("P0 KeyGenRound1NoSeed")
 	ecsRndBytes := [32]byte{}
 	edwards25519.FeToBytes(&ecsRndBytes, &eddsa.ECSNewRandom().Fe)
@@ -24,24 +26,26 @@ func KeyGenRound1NoSeed() (*eddsa.Keypair, *eddsa.KeyAgg) {
 	return keyGenRound1Internal(sKSeed, nil)
 }
 
-func KeyGenRound1FromSeed(clientSKSeed *big.Int) (*eddsa.Keypair, *eddsa.KeyAgg) {
+func KeyGenRound1FromSeed(clientSKSeed *big.Int) (*eddsa.Keypair, *eddsa.KeyAgg, *db.MPCWallet, *error) {
 	//println("P0 KeyGenRound1FromSeed")
 	return keyGenRound1Internal(clientSKSeed, nil)
 }
 
-func KeyGenRound1FromBothSeed(clientSKSeed *big.Int, serverSKSeed *big.Int) (*eddsa.Keypair, *eddsa.KeyAgg) {
+func KeyGenRound1FromBothSeed(clientSKSeed *big.Int, serverSKSeed *big.Int) (*eddsa.Keypair, *eddsa.KeyAgg, *db.MPCWallet, *error) {
 	//println("P0 KeyGenRound1FromBothSeed")
 	return keyGenRound1Internal(clientSKSeed, serverSKSeed)
 }
 
-func keyGenRound1Internal(clientSKSeed *big.Int, serverSKSeed *big.Int) (*eddsa.Keypair, *eddsa.KeyAgg) {
+func keyGenRound1Internal(clientSKSeed *big.Int, serverSKSeed *big.Int) (*eddsa.Keypair, *eddsa.KeyAgg, *db.MPCWallet, *error) {
 	// generate client keypair
 	clientKeypair := eddsa.CreateKeyPairFromSeed(clientSKSeed)
 	clientPubkeyBN := clientKeypair.PublicKey.BytesCompressedToBigInt()
 	//println("clientPubkeyBN:", clientPubkeyBN.String())
 
 	// ask for server public key
+	userId := uuid.CreateUUID()
 	data := map[string]interface{}{
+		"user_id":          userId,
 		"client_pubkey_bn": clientPubkeyBN.String(),
 	}
 	if serverSKSeed != nil {
@@ -75,9 +79,25 @@ func keyGenRound1Internal(clientSKSeed *big.Int, serverSKSeed *big.Int) (*eddsa.
 	keyAgg := eddsa.KeyAggregationN(&pks, global.PARTY_INDEX_P0)
 	aggPubKeyBytes := [32]byte{}
 	keyAgg.Apk.Ge.ToBytes(&aggPubKeyBytes)
+
+	// save clientKeypair, keyAgg to db
+	wallet := db.MPCWallet{
+		UserId:       userId,
+		PartyIdx:     0,
+		SeedBN:       clientSKSeed.String(),
+		KeyAggAPKBN:  keyAgg.Apk.ToBigInt().String(),
+		KeyAggHashBN: keyAgg.Hash.ToBigInt().String(),
+	}
+	err = wallet.Create()
+	if err != nil {
+		println("[P0keyGenRound1] Cannot store p0 mpcwallet to db. error=", err.Error())
+		return nil, nil, nil, &err
+	}
+	println("[P0keyGenRound1] Successfully saved to db")
+
 	//fmt.Println("aggregated_pukey=", hex.EncodeToString(aggPubKeyBytes[:]))
 	//fmt.Println("key_agg=", keyAgg.ToString())
-	return clientKeypair, keyAgg
+	return clientKeypair, keyAgg, &wallet, nil
 }
 
 func KeyGen() (*eddsa.Keypair, *eddsa.KeyAgg) {

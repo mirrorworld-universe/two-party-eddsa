@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func SignRound1(msg *string, clientKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg) (*string, *string, *error) {
+func SignRound1(userId *string, msg *string, clientKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg) (*string, *string, *error) {
 	// round 1
 	msgHash := sha256.Sum256([]byte(*msg))
 	println("msgHash=", new(big.Int).SetBytes(msgHash[:]).String())
@@ -26,6 +26,7 @@ func SignRound1(msg *string, clientKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg)
 	// send request to P1 to get commitment
 	url := "http://localhost:3000/p1/sign_round1"
 	data := map[string]interface{}{
+		"user_id":          userId,
 		"client_pubkey_bn": clientKeypair.PublicKey.BytesCompressedToBigInt().String(),
 		"msg_hash_bn":      new(big.Int).SetBytes(msgHash[:]).String(),
 	}
@@ -51,6 +52,7 @@ func SignRound1(msg *string, clientKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg)
 	// p1 round2
 	url = "http://localhost:3000/p1/sign_round2"
 	data = map[string]interface{}{
+		"user_id":                             userId,
 		"client_pubkey_bn":                    clientKeypair.PublicKey.BytesCompressedToBigInt().String(),
 		"msg_hash_bn":                         new(big.Int).SetBytes(msgHash[:]).String(),
 		"client_sign_first_msg_commitment_bn": clientSignFirstMsg.Commitment.String(),

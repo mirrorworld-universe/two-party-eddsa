@@ -2,6 +2,7 @@ package rest
 
 // P1 KeyGen
 type P1KeygenRound1Req struct {
+	UserId         string `json:"user_id" binding:"required"`
 	ClientPubkeyBN string `json:"client_pubkey_bn" binding:"required,validbn"`
 	ServerSKSeed   string `json:"server_sk_seed"`
 }
@@ -12,6 +13,7 @@ type P1KeygenRound1Response struct {
 
 // P1 Sign round1
 type P1SignRound1Req struct {
+	UserId         string `json:"user_id" binding:"required"`
 	MsgHashBN      string `json:"msg_hash_bn" binding:"required,validbn"`
 	ClientPubkeyBN string `json:"client_pubkey_bn" binding:"required,validbn"`
 }
@@ -22,6 +24,7 @@ type P1SignRound1Response struct {
 
 // P1 Sign round2
 type P1SignRound2Req struct {
+	UserId                         string `json:"user_id" binding:"required"`
 	ClientPubkeyBN                 string `json:"client_pubkey_bn" binding:"required,validbn"`
 	MsgHashBN                      string `json:"msg_hash_bn" binding:"required,validbn"`
 	ClientSignFirstMsgCommitmentBN string `json:"client_sign_first_msg_commitment_bn" binding:"required,validbn"`

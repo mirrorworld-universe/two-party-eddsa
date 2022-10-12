@@ -28,7 +28,7 @@ func InitDBEngine(config *DbConfig) {
 		config.Host,
 		config.Port,
 		config.DBName)
-
+	println("connecting to DB, settings=", dsn)
 	db, err := gorm.Open(mysql.New(mysql.Config{
 		DSN:                       dsn,
 		SkipInitializeWithVersion: false,

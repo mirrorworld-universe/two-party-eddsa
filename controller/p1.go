@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"main/finder"
 	"main/internal/agl_ed25519/edwards25519"
 	"main/internal/base_resp"
 	"main/internal/binding"
@@ -23,9 +24,9 @@ func P1KeyGenRound1(c *gin.Context) {
 
 	if len(reqBody.ServerSKSeed) > 0 {
 		ServerSKSeedBN, _ := new(big.Int).SetString(reqBody.ServerSKSeed, 10)
-		serverPubkeyBN, keyAgg = p1.KeyGenRound1FromSeed(clientPubkeyBN, ServerSKSeedBN)
+		serverPubkeyBN, keyAgg = p1.KeyGenRound1FromSeed(&reqBody.UserId, clientPubkeyBN, ServerSKSeedBN)
 	} else {
-		serverPubkeyBN, keyAgg = p1.KeyGenRound1NoSeed(clientPubkeyBN)
+		serverPubkeyBN, keyAgg = p1.KeyGenRound1NoSeed(&reqBody.UserId, clientPubkeyBN)
 	}
 	println("[P1KeyGenRound1] server keyAgg=", keyAgg.ToString())
 	resp := rest.P1KeygenRound1Response{
@@ -39,7 +40,6 @@ func P1SignRound1(c *gin.Context) {
 	if err := binding.BindJson(c, &reqBody); err != nil {
 		return
 	}
-
 	msgHash, _ := new(big.Int).SetString(reqBody.MsgHashBN, 10)
 	clientPubkeyBN, _ := new(big.Int).SetString(reqBody.ClientPubkeyBN, 10)
 	clientPubkey := eddsa.NewECPSetFromBN(clientPubkeyBN)
@@ -47,7 +47,8 @@ func P1SignRound1(c *gin.Context) {
 	println("[P1SignRound1] msgHash=", msgHash.String())
 
 	// hardcode
-	ServerSKSeedBN, _ := new(big.Int).SetString("1276567075174267627823301091809777026200725024551313144625936661005557002592", 10)
+	wallet := finder.FindP1ByUserId(&reqBody.UserId)
+	ServerSKSeedBN, _ := new(big.Int).SetString(wallet.SeedBN, 10)
 	serverKeypair := eddsa.CreateKeyPairFromSeed(ServerSKSeedBN)
 	serverEphemeralKey, serverSignFirstMsg := p1.SignRound1(serverKeypair, msgHash)
 	println("[P1SignRound1] serverKeypair=", serverKeypair.ToString())
@@ -79,10 +80,11 @@ func P1SignRound2(c *gin.Context) {
 
 	// hardcode
 	// we should read serverSKSeed, keyAgg from db.
-	ServerSKSeedBN, _ := new(big.Int).SetString("1276567075174267627823301091809777026200725024551313144625936661005557002592", 10)
+	wallet := finder.FindP1ByUserId(&reqBody.UserId)
+	ServerSKSeedBN, _ := new(big.Int).SetString(wallet.SeedBN, 10)
 	serverKeypair := eddsa.CreateKeyPairFromSeed(ServerSKSeedBN)
 	clientPubkeyBN, _ := new(big.Int).SetString(reqBody.ClientPubkeyBN, 10)
-	_, keyAgg := p1.KeyGenRound1FromSeed(clientPubkeyBN, ServerSKSeedBN)
+	_, keyAgg := p1.KeyGenRound1FromSeed(&reqBody.UserId, clientPubkeyBN, ServerSKSeedBN)
 
 	serverSignSecondMsg, s1 := p1.SignRound2(
 		clientCommitment,

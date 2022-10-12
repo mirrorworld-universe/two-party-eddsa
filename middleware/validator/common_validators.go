@@ -6,6 +6,6 @@ import (
 )
 
 var ValidBN validator.Func = func(fl validator.FieldLevel) bool {
-	_, ok := new(big.Int).SetString(fl.Field().Interface().(string), 10)
-	return ok
+	bn, ok := new(big.Int).SetString(fl.Field().Interface().(string), 10)
+	return ok && bn != nil
 }

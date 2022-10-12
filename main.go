@@ -5,9 +5,12 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"main/global"
+	"main/internal/logging"
+	"main/internal/settings"
+	"main/middleware/dao"
 	validator2 "main/middleware/validator"
+	"main/model/db"
 	"main/routes"
-	"main/service/p0"
 	"net/http"
 	"os"
 	"os/signal"
@@ -20,9 +23,45 @@ func closeResource() {
 	//redis.CloseRedisConnection()
 }
 
-func init() {
-	global.InitConfig()
-	global.InitLogger()
+func InitConfig() {
+	// 根据环境变量读取不同的配置文件
+	env := os.Getenv("ENV")
+	fmt.Println("current env:", env)
+	if env == "dev" {
+		global.Config = settings.InitConfig("conf/config_dev.toml")
+	} else if env == "staging" {
+		global.Config = settings.InitConfig("conf/config_staging.toml")
+	} else if env == "prod" {
+		global.Config = settings.InitConfig("conf/config_prod.toml")
+	} else {
+		global.Config = settings.InitConfig("conf/config_local.toml")
+	}
+}
+
+func InitLogger() {
+
+	if global.Config.Base.Env == "dev" {
+		global.Logger = logging.InitLogger(logging.WithLogPath(global.Config.Log.Path), logging.WithOutput(logging.ONLY_TERMINAL))
+	} else {
+		// k8s 直接输出到终端
+		global.Logger = logging.InitLogger(logging.WithLogPath(global.Config.Log.Path), logging.WithOutput(logging.ONLY_TERMINAL))
+	}
+}
+
+func InitDB() {
+	dao.InitDBEngine(&dao.DbConfig{
+		Host:         global.Config.DB.Host,
+		Port:         global.Config.DB.Port,
+		User:         global.Config.DB.UserName,
+		Password:     global.Config.DB.Password,
+		DBName:       global.Config.DB.DBName,
+		MaxIdleConns: global.Config.DB.MaxIdleConns,
+		MaxOpenConns: global.Config.DB.MaxOpenConns,
+		MaxLifetime:  global.Config.DB.MaxLifetime,
+	})
+
+	// auto migrate
+	dao.GetDbEngine().AutoMigrate(&db.MPCWallet{})
 }
 
 func main() {
@@ -32,12 +71,12 @@ func main() {
 	//publicKey, privateKey, _ := eddsa.GenerateKey(reader)
 	//fmt.Println(toLittleEdian(publicKey), privateKey)
 
-	clientKeypair, keyAgg := p0.KeyGen()
-	println("clientKeypair=", clientKeypair)
-	//
-	println("\n\n************ SIGN now *************")
-	msg := "hello"
-	p0.Sign(&msg, clientKeypair, keyAgg)
+	//clientKeypair, keyAgg := p0.KeyGen()
+	//println("clientKeypair=", clientKeypair)
+	////
+	//println("\n\n************ SIGN now *************")
+	//msg := "hello"
+	//p0.Sign(&msg, clientKeypair, keyAgg)
 
 	//R := "1dd9ad91d660e104fc02043e7bbe0c303f1bfc1c012689ab8c2d38c4ae6be0e7"
 	//s := "7bf0d2eb8027a65988c43a4c79e70f3ab67eadf1a8a852b5cf34ef1ace192407"
@@ -48,6 +87,10 @@ func main() {
 	//println("serverKeypair=", serverKeypair.ToString())
 	//
 	//p1.Sign(serverKeypair, keyAgg)
+
+	InitConfig()
+	InitLogger()
+	InitDB()
 
 	// custom validators
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {

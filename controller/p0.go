@@ -3,11 +3,13 @@ package controller
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"main/finder"
 	"main/global"
 	"main/internal/base_resp"
 	"main/internal/binding"
 	"main/internal/eddsa"
 	error_code "main/internal/err_code"
+	"main/model/db"
 	"main/model/rest"
 	"main/service/p0"
 	"math/big"
@@ -34,6 +36,8 @@ func P0KeyGenRound1(c *gin.Context) {
 		serverSKSeed, _ = new(big.Int).SetString(reqBody.ServerSKSeed, 10)
 	}
 
+	var wallet *db.MPCWallet
+	var err *error
 	if len(reqBody.ClientSKSeed) > 0 {
 		clientSKSeed, ok := new(big.Int).SetString(reqBody.ClientSKSeed, 10)
 		if !ok {
@@ -42,20 +46,29 @@ func P0KeyGenRound1(c *gin.Context) {
 			return
 		}
 		if serverSKSeed != nil {
-			clientKeypair, keyAgg = p0.KeyGenRound1FromBothSeed(clientSKSeed, serverSKSeed)
+			clientKeypair, keyAgg, wallet, err = p0.KeyGenRound1FromBothSeed(clientSKSeed, serverSKSeed)
 		} else {
-			clientKeypair, keyAgg = p0.KeyGenRound1FromSeed(clientSKSeed)
+			clientKeypair, keyAgg, wallet, err = p0.KeyGenRound1FromSeed(clientSKSeed)
 		}
 	} else {
-		clientKeypair, keyAgg = p0.KeyGenRound1NoSeed()
+		clientKeypair, keyAgg, wallet, err = p0.KeyGenRound1NoSeed()
+	}
+
+	bsp := error_code.NewBaseResp()
+	if err != nil {
+		bsp.SetMsg(error_code.InternalError, fmt.Sprintf("%v", err))
+		base_resp.JsonResponse(c, bsp, nil)
+		return
 	}
 
 	clientPubkeyByte := [32]byte{}
 	clientKeypair.PublicKey.Ge.ToBytes(&clientPubkeyByte)
+
 	println("keyagg=", keyAgg.ToString())
 	resp := rest.P0KeygenRound1Response{
 		ClientPubkeyBN: new(big.Int).SetBytes(clientPubkeyByte[:]).String(),
 		KeyAgg:         keyAgg.Apk.ToHexString(),
+		UserId:         wallet.UserId,
 	}
 	base_resp.JsonResponseSimple(c, resp)
 }
@@ -66,12 +79,15 @@ func P0SignRound1(c *gin.Context) {
 		return
 	}
 
-	// this should be read from db by userId.
-	clientSKSeed, _ := new(big.Int).SetString(reqBody.ClientSKSeed, 10)
-	ServerSKSeedBN, _ := new(big.Int).SetString("1276567075174267627823301091809777026200725024551313144625936661005557002592", 10)
-	clientKeypair, keyAgg := p0.KeyGenRound1FromBothSeed(clientSKSeed, ServerSKSeedBN)
+	wallet := finder.FindP0ByUserId(&reqBody.UserId)
+	seedBN, _ := new(big.Int).SetString(wallet.SeedBN, 10)
+	clientKeypair := eddsa.CreateKeyPairFromSeed(seedBN)
 
-	R, s, err := p0.SignRound1(&reqBody.Msg, clientKeypair, keyAgg)
+	apkBN, _ := new(big.Int).SetString(wallet.KeyAggAPKBN, 10)
+	hashBN, _ := new(big.Int).SetString(wallet.KeyAggHashBN, 10)
+	keyAgg := eddsa.NewKeyAggFromBNs(apkBN, hashBN)
+
+	R, s, err := p0.SignRound1(&wallet.UserId, &reqBody.Msg, clientKeypair, keyAgg)
 	bsp := error_code.NewBaseResp()
 	if err != nil {
 		bsp.SetMsg(error_code.InternalError, fmt.Sprintf("%v", err))
