@@ -9,11 +9,11 @@ import (
 type MPCWallet struct {
 	gorm.Model
 
-	UserId       string `json:"user_id" gorm:"not null;index:user_id__party_id,priority:1"`
+	UserId       string `json:"user_id" gorm:"not null;index:user_id__party_id,priority:1;index:user_id__key_agg_apk_bn,priority:1"`
 	PartyIdx     int8   `json:"party_idx" gorm:"not null;index:user_id__party_id,priority:2"`
-	SeedBN       string `json:"seed_bn" gorm:"type:varchar(1000);not null"`
-	KeyAggAPKBN  string `json:"key_agg_apk_bn" gorm:"type:varchar(1000);not null"`
-	KeyAggHashBN string `json:"key_agg_hash_bn" gorm:"type:varchar(1000);not null"`
+	SeedBN       string `json:"seed_bn" gorm:"type:varchar(512);not null;unique"`
+	KeyAggAPKBN  string `json:"key_agg_apk_bn" gorm:"type:varchar(512);not null;index:user_id__key_agg_apk_bn,priority:2"`
+	KeyAggHashBN string `json:"key_agg_hash_bn" gorm:"type:varchar(512);not null"`
 }
 
 func (m MPCWallet) TableName() string {
