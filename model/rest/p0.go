@@ -22,3 +22,15 @@ type P0SignRound1Response struct {
 	R      string `json:"R" binding:"required"`
 	SmallS string `json:"s" binding:"required"`
 }
+
+// verify
+type P0VerifyReq struct {
+	Msg    string `json:"msg" binding:"required"`
+	R      string `json:"R" binding:"required"`
+	SmallS string `json:"s" binding:"required"`
+	KeyAgg string `json:"key_agg" binding:"required"`
+}
+
+type P0VerifyResponse struct {
+	IsValid bool `json:"is_valid" binding:"required"`
+}

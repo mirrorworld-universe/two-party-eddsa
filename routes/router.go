@@ -28,6 +28,7 @@ func NewRouter() *gin.Engine {
 		rP0.GET("test", controller.Ping)
 		rP0.POST("keygen_round1", controller.P0KeyGenRound1)
 		rP0.POST("sign_round1", controller.P0SignRound1)
+		rP0.POST("verify", controller.P0Verify)
 	}
 
 	// p1 related, server

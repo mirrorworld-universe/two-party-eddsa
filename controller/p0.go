@@ -101,6 +101,26 @@ func P0SignRound1(c *gin.Context) {
 	base_resp.JsonResponse(c, bsp, data)
 }
 
+func P0Verify(c *gin.Context) {
+	reqBody := rest.P0VerifyReq{}
+	if err := binding.BindJson(c, &reqBody); err != nil {
+		return
+	}
+
+	isValid := p0.Verify(
+		&reqBody.Msg,
+		&reqBody.R,
+		&reqBody.SmallS,
+		&reqBody.KeyAgg,
+	)
+
+	data := rest.P0VerifyResponse{
+		IsValid: isValid,
+	}
+	bsp := error_code.NewBaseResp()
+	base_resp.JsonResponse(c, bsp, data)
+}
+
 func Ping(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "pong",

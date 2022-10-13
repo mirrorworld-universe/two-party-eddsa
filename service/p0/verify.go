@@ -9,7 +9,7 @@ import (
 	"math/big"
 )
 
-func Verify(msg *string, R *string, s *string, publicKey *string) {
+func Verify(msg *string, R *string, s *string, publicKey *string) bool {
 	msgByte := utils.StringToBytes(msg)
 	msgHash := sha256.Sum256(msgByte)
 
@@ -49,5 +49,5 @@ func Verify(msg *string, R *string, s *string, publicKey *string) {
 	}
 
 	msgHash2 := msgHash[:]
-	eddsa.Verify(&sig, &msgHash2, pubkey)
+	return eddsa.Verify(&sig, &msgHash2, pubkey)
 }
