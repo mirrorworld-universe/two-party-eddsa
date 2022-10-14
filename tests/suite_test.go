@@ -2,7 +2,8 @@ package tests
 
 import (
 	"github.com/stretchr/testify/suite"
-	"gorm.io/gorm"
+	"main/global"
+	"main/middleware/dao"
 	"main/model/db"
 	"os"
 	"testing"
@@ -10,11 +11,10 @@ import (
 
 type SuiteTest struct {
 	suite.Suite
-	db *gorm.DB
 }
 
 func TestSuite(t *testing.T) {
-	os.Setenv("ENV", "tests")
+	os.Setenv("ENV", "test")
 	defer os.Unsetenv("ENV")
 
 	suite.Run(t, new(SuiteTest))
@@ -26,33 +26,37 @@ func getModels() []interface{} {
 	}
 }
 
-// Setup db value
+// Setup suite
 func (t *SuiteTest) SetupSuite() {
-	//main.InitConfig()
-	//main.InitDB()
-	//main.InitLogger()
+	println("[SetupSuite] Setup for all tests")
+	global.InitAll()
 
-	SetupAll()
+	// Migrate Table
+	for _, val := range getModels() {
+		dao.GetDbEngine().AutoMigrate(val)
+	}
 
+	// start gin server
 }
 
 // Run After All Test Done
 func (t *SuiteTest) TearDownSuite() {
-	sqlDB, _ := t.db.DB()
+	println("[TearDownSuite] Clean up in the end.")
+	sqlDB, _ := dao.GetDbEngine().DB()
 	defer sqlDB.Close()
 
 	// Drop Table
-	//for _, val := range getModels() {
-	//	t.db.Migrator().DropTable(val)
-	//}
+	for _, val := range getModels() {
+		dao.GetDbEngine().Migrator().DropTable(val)
+	}
 }
 
 // Run Before a Test
 func (t *SuiteTest) SetupTest() {
-	println("SetupTest, Run Before a Test")
+	//println("***SetupTest, Run Before a Test")
 }
 
 // Run After a Test
 func (t *SuiteTest) TearDownTest() {
-	println("TearDownTest, Run After a Test")
+	//println("***TearDownTest, Run After a Test")
 }

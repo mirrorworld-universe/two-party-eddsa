@@ -21,6 +21,8 @@ func InitConfig() {
 		Config = settings.InitConfig("conf/config_staging.toml")
 	} else if env == "prod" {
 		Config = settings.InitConfig("conf/config_prod.toml")
+	} else if env == "test" {
+		Config = settings.InitConfig("conf/config_test.toml")
 	} else {
 		Config = settings.InitConfig("conf/config_local.toml")
 	}
