@@ -117,8 +117,7 @@ func P0Verify(c *gin.Context) {
 	data := rest.P0VerifyResponse{
 		IsValid: isValid,
 	}
-	bsp := error_code.NewBaseResp()
-	base_resp.JsonResponse(c, bsp, data)
+	base_resp.JsonResponseSimple(c, data)
 }
 
 func Ping(c *gin.Context) {

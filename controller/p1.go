@@ -47,7 +47,6 @@ func P1SignRound1(c *gin.Context) {
 	println("[P1SignRound1] clientPubkey=", clientPubkey.ToString())
 	println("[P1SignRound1] msgHash=", msgHash.String())
 
-	// hardcode
 	wallet := finder.FindP1ByUserId(&reqBody.UserId)
 	ServerSKSeedBN, _ := new(big.Int).SetString(wallet.SeedBN, 10)
 	serverKeypair := eddsa.CreateKeyPairFromSeed(ServerSKSeedBN)
@@ -79,7 +78,6 @@ func P1SignRound2(c *gin.Context) {
 
 	clientSignSecondMsgBF, _ := new(big.Int).SetString(reqBody.ClientSignSecondMsgBF32BN, 10)
 
-	// hardcode
 	// we should read serverSKSeed, keyAgg from db.
 	wallet := finder.FindP1ByUserId(&reqBody.UserId)
 	ServerSKSeedBN, _ := new(big.Int).SetString(wallet.SeedBN, 10)
