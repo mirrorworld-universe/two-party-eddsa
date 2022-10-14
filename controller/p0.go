@@ -98,7 +98,7 @@ func P0SignRound1(c *gin.Context) {
 		R:      *R,
 		SmallS: *s,
 	}
-	base_resp.JsonResponse(c, bsp, data)
+	base_resp.JsonResponseSimple(c, data)
 }
 
 func P0Verify(c *gin.Context) {

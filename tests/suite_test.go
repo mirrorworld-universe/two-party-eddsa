@@ -1,16 +1,21 @@
 package tests
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/suite"
 	"main/global"
 	"main/middleware/dao"
+	validator2 "main/middleware/validator"
 	"main/model/db"
+	"main/routes"
+	"net/http"
 	"os"
 	"testing"
 )
 
 type SuiteTest struct {
 	suite.Suite
+	router *gin.Engine
 }
 
 func TestSuite(t *testing.T) {
@@ -36,7 +41,30 @@ func (t *SuiteTest) SetupSuite() {
 		dao.GetDbEngine().AutoMigrate(val)
 	}
 
-	// start gin server
+	// extra config
+	gin.SetMode(gin.TestMode)
+
+	// custom validators
+	validator2.SetupValidators()
+
+	// setup router
+	router := routes.NewRouter()
+
+	// create service
+	srv := &http.Server{
+		Addr:    global.Config.Base.Port,
+		Handler: router,
+	}
+
+	go func() {
+		err := srv.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			global.Logger.Error("Gin server start error:", err.Error())
+			panic(err.Error())
+		}
+	}()
+
+	t.router = router
 }
 
 // Run After All Test Done

@@ -35,8 +35,12 @@ func LoggerMiddleware() gin.HandlerFunc {
 		realIp := c.Request.Header.Get("X-Real-Ip")
 		httpClientIP := c.Request.RemoteAddr
 
-		reqBody, _ := ioutil.ReadAll(c.Request.Body)
-		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(reqBody))
+		reqBody := []byte{}
+		if c.Request.Body != nil {
+			reqBody, _ = ioutil.ReadAll(c.Request.Body)
+			c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(reqBody))
+		}
+
 		// 替换默认的 writer
 		c.Writer = nw
 		c.Next()

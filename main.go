@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin/binding"
-	"github.com/go-playground/validator/v10"
 	"main/global"
 	validator2 "main/middleware/validator"
 	"main/routes"
@@ -106,11 +104,12 @@ func main() {
 	global.InitAll()
 
 	// custom validators
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		v.RegisterValidation("validbn", validator2.ValidBN)
-	}
+	validator2.SetupValidators()
 
+	// setup router
 	router := routes.NewRouter()
+
+	// create service
 	srv := &http.Server{
 		Addr:    global.Config.Base.Port,
 		Handler: router,
