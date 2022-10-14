@@ -1,0 +1,22 @@
+[base]
+Port = ":3000"
+Model = "debug"
+Env = "local"
+P0Url = "http://localhost:3000"
+P1Url = "http://localhost:3000"
+
+[log]
+Path = "log/mirror_backend_test.log"
+MaxSize = 20
+MaxAge = 7
+Backups = 10
+
+[db]
+Host = "localhost"
+Port = 3306
+UserName = "root"
+Password = "123456"
+DBName = "mw_test"
+MaxIdleConns = 10
+MaxOpenConns = 30
+MaxLifetime = 10
