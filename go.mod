@@ -4,8 +4,8 @@ go 1.18
 
 require (
 	github.com/BurntSushi/toml v0.4.1
+	github.com/btcsuite/btcutil v1.0.2
 	github.com/gin-gonic/gin v1.8.1
-	github.com/go-playground/assert/v2 v2.0.1
 	github.com/go-playground/validator/v10 v10.10.0
 	github.com/google/uuid v1.3.0
 	github.com/levigross/grequests v0.0.0-20190908174114-253788527a1a
@@ -22,6 +22,7 @@ require (
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.2.0 // indirect
+	github.com/btcsuite/btcd v0.20.1-beta // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect

@@ -1,0 +1,68 @@
+version: 2.1
+orbs:
+  kubernetes: circleci/kubernetes@1.3.0
+jobs:
+  build:
+    machine:
+      image: ubuntu-2004:current
+    steps:
+      - checkout
+      - kubernetes/install-kubectl
+      - run:
+          name: Build and push Two-Party-Eddsa
+          command: make all
+      - run:
+          name: Clone Infrastructure Repository
+          command: >-
+            git config --global user.name "joze144" &&
+            git config --global user.password ${GITHUB_PASSWORD} &&
+            git clone https://joze144:${GITHUB_PASSWORD}@github.com/mirrorworld-universe/Infrastructure.git ~/Infrastructure &&
+            export SERVICE_VERSION=$(git rev-parse --short HEAD) &&
+            export SERVICE_NAME=two-party-eddsa &&
+            export REPOSITORY_NAME=two-party-eddsa &&
+            cd ~/Infrastructure/development &&
+            kubectl patch --local -f ${SERVICE_NAME}-deployment.yaml -p "{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"${SERVICE_NAME}\",\"image\":\"${DOCKER_REGISTRY}/${REPOSITORY_NAME}:${SERVICE_VERSION}\"}]}}}}" -o yaml > ${SERVICE_NAME}-deployment.yaml.new &&
+            mv ${SERVICE_NAME}-deployment.yaml.new ${SERVICE_NAME}-deployment.yaml &&
+            git add .;
+            git commit -m "bump ${SERVICE_NAME} to ${SERVICE_VERSION}";
+            git push
+
+  build_master:
+    machine:
+      image: ubuntu-2004:current
+    steps:
+      - checkout
+      - kubernetes/install-kubectl
+      - run:
+          name: Build and push two-party-eddsa service
+          command: make all
+      - run:
+          name: Clone Infrastructure Repository
+          command: >-
+            git config --global user.name "joze144" &&
+            git config --global user.password ${GITHUB_PASSWORD} &&
+            git clone https://joze144:${GITHUB_PASSWORD}@github.com/mirrorworld-universe/Infrastructure.git ~/Infrastructure &&
+            export SERVICE_VERSION=$(git rev-parse --short HEAD) &&
+            export SERVICE_NAME=two-party-eddsa &&
+            export REPOSITORY_NAME=two-party-eddsa &&
+            cd ~/Infrastructure/production &&
+            kubectl patch --local -f ${SERVICE_NAME}-deployment.yaml -p "{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"${SERVICE_NAME}\",\"image\":\"${DOCKER_REGISTRY}/${REPOSITORY_NAME}:${SERVICE_VERSION}\"}]}}}}" -o yaml > ${SERVICE_NAME}-deployment.yaml.new &&
+            mv ${SERVICE_NAME}-deployment.yaml.new ${SERVICE_NAME}-deployment.yaml &&
+            git add .;
+            git commit -m "bump ${SERVICE_NAME} to ${SERVICE_VERSION}";
+            git push          
+
+workflows:
+  version: 2
+  test_and_build:
+    jobs:
+      - build:
+          context: docker
+          filters:
+            branches:
+              only: dev
+      - build_master:
+          context: docker
+          filters:
+              branches:
+                only: master

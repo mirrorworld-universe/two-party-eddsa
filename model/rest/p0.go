@@ -9,7 +9,15 @@ type P0KeygenRound1Req struct {
 type P0KeygenRound1Response struct {
 	ClientPubkeyBN string `json:"client_pubkey_bn" binding:"required,validbn"`
 	KeyAgg         string `json:"key_agg" binding:"required"`
+	KeyAggBs58     string `json:"key_agg_bs58" binding:"required"`
 	UserId         string `json:"user_id" binding:"required"`
+}
+
+// get key gen by user id
+type P0GetKeyGenByUserIdResponse struct {
+	ClientPubkeyBN string `json:"client_pubkey_bn" binding:"required,validbn"`
+	KeyAgg         string `json:"key_agg" binding:"required"`
+	KeyAggBs58     string `json:"key_agg_bs58" binding:"required"`
 }
 
 // sign
