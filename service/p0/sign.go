@@ -18,7 +18,14 @@ import (
 
 func SignRound1(userId *string, msg *string, clientKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg) (*string, *string, *error) {
 	// round 1
-	msgHash := sha256.Sum256([]byte(*msg))
+	//datat, err := base64.StdEncoding.DecodeString(*msg)
+
+	// msgHash from bigint
+	msgBN, _ := new(big.Int).SetString(*msg, 10)
+	//msgHash := sha256.Sum256(msgBN.Bytes())
+	msgHash := msgBN.Bytes()
+	println("msgbytes=", utils.BytesToStr(msgHash[:]))
+	//msgHash := datat
 	println("msgHash=", new(big.Int).SetBytes(msgHash[:]).String())
 
 	clientEphemeralKey, clientSignFirstMsg, clientSignSecondMsg := eddsa.CreateEphemeralKeyAndCommit(clientKeypair, msgHash[:])
@@ -31,6 +38,7 @@ func SignRound1(userId *string, msg *string, clientKeypair *eddsa.Keypair, keyAg
 		"client_pubkey_bn": clientKeypair.PublicKey.BytesCompressedToBigInt().String(),
 		"msg_hash_bn":      new(big.Int).SetBytes(msgHash[:]).String(),
 	}
+
 	var resp rest.P1SignRound1Response
 	response, err := grequests.Post(url, &grequests.RequestOptions{
 		JSON:           data,

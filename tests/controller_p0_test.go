@@ -9,6 +9,9 @@ import (
 	"net/http/httptest"
 )
 
+/**
+Sample test pong endpoint
+*/
 func (t *SuiteTest) TestPing() {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodGet, "/p0/test", nil)
@@ -18,6 +21,9 @@ func (t *SuiteTest) TestPing() {
 	assert.Equal(t.T(), http.StatusOK, w.Code)
 }
 
+/**
+Helper method for keygen
+*/
 func verifyKeyGen(t *SuiteTest, v *TestInput) *string {
 	w := httptest.NewRecorder()
 	requestBody := map[string]string{
@@ -41,6 +47,9 @@ func verifyKeyGen(t *SuiteTest, v *TestInput) *string {
 	return &resp.UserId
 }
 
+/**
+Helper method for sign msg
+*/
 func verifySignMsg(t *SuiteTest, userId *string, v *TestInput) {
 	w := httptest.NewRecorder()
 	requestBody := map[string]string{
@@ -68,6 +77,7 @@ func (t *SuiteTest) TestP0KeyGen() {
 		ExpectedClientPubkeyBN: "62564454420585069468955050107550805769837960470189050038393387670380364818689",
 		ExpectedKeyAgg:         "3d1f64651ed8fc0f9ff867b1abf4100945f0b774409422576276016cc2b9e131",
 	}
+
 	verifyKeyGen(t, &v)
 }
 

@@ -106,7 +106,7 @@ func P1SignRound2(c *gin.Context) {
 
 	edwards25519.FeToBytes(&temp32, &s1.SmallS.Fe)
 	ServerSigSmallSBN := new(big.Int).SetBytes(temp32[:]).String()
-
+	
 	resp := rest.P1SignRound2Response{
 		ServerSignSecondMsgR:    serverSignSecondMsgR,
 		ServerSignSecondMsgBF32: new(big.Int).SetBytes(bf32Byte[:]).String(),
