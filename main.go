@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"main/global"
+	"main/middleware/dao"
 	validator2 "main/middleware/validator"
+	"main/model/db"
 	"main/routes"
 	"main/utils"
 	"math/big"
@@ -102,6 +104,8 @@ func main() {
 	//InitLogger()
 	//InitDB()
 	global.InitAll()
+
+	dao.GetDbEngine().AutoMigrate(&db.MPCWallet{})
 
 	// custom validators
 	validator2.SetupValidators()
