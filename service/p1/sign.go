@@ -27,6 +27,7 @@ func SignRound2(
 		clientSignSecondMsgBF,
 		clientCommitment,
 	)
+
 	if !isCommMatch {
 		panic(errors.New("commitment not match"))
 	}
