@@ -7,6 +7,7 @@ import (
 	"main/internal/logging"
 	"main/internal/settings"
 	"main/middleware/dao"
+	db2 "main/model/db"
 	"os"
 	"time"
 )
@@ -96,6 +97,9 @@ func InitDB() {
 		MaxLifetime:  Config.DB.MaxLifetime,
 	})
 	dao.SetDbEngine(db)
+
+	// auto migrate
+	dao.GetDbEngine().AutoMigrate(&db2.MPCWallet{})
 }
 
 func InitAll() {
