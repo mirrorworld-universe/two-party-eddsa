@@ -16,7 +16,7 @@ ENV TZ=Asia/Shanghai \
 
 #RUN go get ./...
 RUN go mod download
-RUN go build -tags musl --ldflags "-extldflags -static" -o mirror-market-backend .
+RUN go build -tags musl --ldflags "-extldflags -static" -o two-party-eddsa .
 
 FROM scratch
 
@@ -29,7 +29,7 @@ ENV TZ=Asia/Shanghai \
 
 WORKDIR /app
 
-COPY --from=builder /builder/mirror-market-backend .
+COPY --from=builder /builder/two-party-eddsa .
 COPY ./conf ./conf
 
 # for http
