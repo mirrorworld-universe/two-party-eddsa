@@ -1,28 +1,21 @@
 ARG GO_VERSION
 
-#FROM golang:${GO_VERSION} as builder
 FROM golang:1.18-alpine as builder
 
 WORKDIR /builder/
+ADD . /builder/
 
-COPY . .
-
-ENV PATH="/go/bin:${PATH}"
 ENV TZ=Asia/Shanghai \
-    CGO_ENABLED=1   \
-    GO111MODULE=on  \
-    GOOS=linux
-#    GOPROXY=https://goproxy.cn,direct
+    GO111MODULE=on
 
-#RUN go get ./...
-RUN go mod download
-RUN go build -tags musl --ldflags "-extldflags -static" -o two-party-eddsa .
+RUN go get ./...
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o two-party-eddsa
 
 FROM scratch
 
 ENV TZ=Asia/Shanghai \
     GO111MODULE=on \
-    CGO_ENABLED=1 \
+    CGO_ENABLED=0 \
     GOOS=linux \
     GOARCH=amd64 \
     PROGRAM_ENV=pro
@@ -32,8 +25,5 @@ WORKDIR /app
 COPY --from=builder /builder/two-party-eddsa .
 COPY ./conf ./conf
 
-# for http
 EXPOSE 3000
-
-# 启动服务
 CMD ["./two-party-eddsa"]
