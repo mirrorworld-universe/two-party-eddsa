@@ -10,7 +10,6 @@ MaxAge = 7
 Backups = 10
 
 [db]
-Host = "mirrorworld-mysql-db.cxdfzcrpecjt.us-west-2.rds.amazonaws.com"
 Port = 3306
 UserName = "admin"
 Password = "dbpassword"
