@@ -29,6 +29,9 @@ func InitConfig() {
 	}
 
 	fmt.Println("current deployParty:", DeployParty())
+	if DeployParty() != DEPLOY_PARTY_P1 {
+		fmt.Println("P1 Url:", P1Url())
+	}
 }
 
 func DeployParty() string {
@@ -38,6 +41,16 @@ func DeployParty() string {
 		panic(errors.New("unsupported DEPLOY_PARTY"))
 	}
 	return deployParty
+}
+
+func P1Url() string {
+	deployParty := os.Getenv("DEPLOY_PARTY")
+	p1Url := os.Getenv("P1Url")
+	//fmt.Println("current deployParty:", deployParty)
+	if deployParty != DEPLOY_PARTY_P1 && len(p1Url) == 0 {
+		panic(errors.New("unsupported P1Url"))
+	}
+	return p1Url
 }
 
 func InitLogger() {

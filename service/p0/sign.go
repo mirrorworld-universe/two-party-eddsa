@@ -28,7 +28,7 @@ func SignRound1(userId *string, msg *string, clientKeypair *eddsa.Keypair, keyAg
 	//msgBN, _ := new(big.Int).SetString(*msg, 10)
 	//msgHash := sha256.Sum256(msgBN.Bytes())
 	//msgHash := msgBN.Bytes()
-	
+
 	println("msgbytes=", utils.BytesToStr(msgHash[:]))
 	//msgHash := datat
 	println("msgHash=", new(big.Int).SetBytes(msgHash[:]).String())
@@ -37,7 +37,7 @@ func SignRound1(userId *string, msg *string, clientKeypair *eddsa.Keypair, keyAg
 	println("clientEphemeralKey=", clientEphemeralKey.ToString(), ", clientSignFirstMsg=", clientSignFirstMsg.ToString()+", clientSignSecondMsg=", clientSignSecondMsg.ToString())
 
 	// send request to P1 to get commitment
-	url := global.Config.Base.P1Url + "/p1/sign_round1"
+	url := global.P1Url() + "/p1/sign_round1"
 	data := map[string]interface{}{
 		"user_id":          userId,
 		"client_pubkey_bn": clientKeypair.PublicKey.BytesCompressedToBigInt().String(),
@@ -64,7 +64,7 @@ func SignRound1(userId *string, msg *string, clientKeypair *eddsa.Keypair, keyAg
 	println("[P0SignRound1] p1_sign_round1 resp, ServerSignFirstMsgCommitmentBN=", resp.ServerSignFirstMsgCommitmentBN)
 
 	// p1 round2
-	url = global.Config.Base.P1Url + "/p1/sign_round2"
+	url = global.P1Url() + "/p1/sign_round2"
 	data = map[string]interface{}{
 		"user_id":                             userId,
 		"client_pubkey_bn":                    clientKeypair.PublicKey.BytesCompressedToBigInt().String(),

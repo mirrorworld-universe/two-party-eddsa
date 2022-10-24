@@ -2,8 +2,6 @@
 Port = ":3000"
 Model = "debug"
 Env = "staging"
-P0Url = "http://localhost:3000"
-P1Url = "http://localhost:3000"
 
 [log]
 Path = "log/two_party_eddsa.log"
