@@ -45,7 +45,7 @@ func DeployParty() string {
 
 func P1Url() string {
 	deployParty := os.Getenv("DEPLOY_PARTY")
-	p1Url := os.Getenv("P1Url")
+	p1Url := os.Getenv("P1_URL")
 	//fmt.Println("current deployParty:", deployParty)
 	if deployParty != DEPLOY_PARTY_P1 && len(p1Url) == 0 {
 		panic(errors.New("unsupported P1Url"))
