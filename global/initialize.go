@@ -1,6 +1,7 @@
 package global
 
 import (
+	"errors"
 	"fmt"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -26,6 +27,17 @@ func InitConfig() {
 	} else {
 		Config = settings.InitConfig("conf/config_local.toml")
 	}
+
+	fmt.Println("current deployParty:", DeployParty())
+}
+
+func DeployParty() string {
+	deployParty := os.Getenv("DEPLOY_PARTY")
+	//fmt.Println("current deployParty:", deployParty)
+	if deployParty != DEPLOY_PARTY_P0 && deployParty != DEPLOY_PARTY_P1 && deployParty != DEPLOY_PARTY_BOTH {
+		panic(errors.New("unsupported DEPLOY_PARTY"))
+	}
+	return deployParty
 }
 
 func InitLogger() {
