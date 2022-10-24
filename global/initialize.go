@@ -111,7 +111,7 @@ func initDBEngine(config *DbConfig) *gorm.DB {
 
 func InitDB() {
 	db := initDBEngine(&DbConfig{
-		Host:         Config.DB.Host,
+		Host:         os.Getenv("MYSQL_HOST"),
 		Port:         Config.DB.Port,
 		User:         Config.DB.UserName,
 		Password:     Config.DB.Password,
