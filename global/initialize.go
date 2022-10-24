@@ -41,7 +41,6 @@ func DeployParty() string {
 		panic(errors.New("unsupported DEPLOY_PARTY"))
 	}
 	return deployParty
-
 }
 
 func P1Url() string {
