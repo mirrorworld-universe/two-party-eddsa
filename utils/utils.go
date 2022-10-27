@@ -134,7 +134,7 @@ func BigIntToByte32(n *big.Int) *[32]byte {
 }
 
 func SendReqAndParseResp[T any](url *string, data *map[string]interface{}, respSchema *T) error {
-	response, err := grequests.Post(global.Config.Base.P1Url+"/p1/keygen_round1", &grequests.RequestOptions{
+	response, err := grequests.Post(global.P1Url()+"/p1/keygen_round1", &grequests.RequestOptions{
 		JSON:           data,
 		RequestTimeout: time.Second * 5,
 		Headers: map[string]string{

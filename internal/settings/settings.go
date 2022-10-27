@@ -26,8 +26,6 @@ type BaseCfg struct {
 	SSO      string
 	User     string
 	Password string
-	P0Url    string
-	P1Url    string
 }
 
 type LogCfg struct {

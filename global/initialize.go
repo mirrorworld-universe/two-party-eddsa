@@ -1,6 +1,7 @@
 package global
 
 import (
+	"errors"
 	"fmt"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -26,6 +27,30 @@ func InitConfig() {
 	} else {
 		Config = settings.InitConfig("conf/config_local.toml")
 	}
+
+	fmt.Println("current deployParty:", DeployParty())
+	if DeployParty() != DEPLOY_PARTY_P1 {
+		fmt.Println("P1 Url:", P1Url())
+	}
+}
+
+func DeployParty() string {
+	deployParty := os.Getenv("DEPLOY_PARTY")
+	//fmt.Println("current deployParty:", deployParty)
+	if deployParty != DEPLOY_PARTY_P0 && deployParty != DEPLOY_PARTY_P1 && deployParty != DEPLOY_PARTY_BOTH {
+		panic(errors.New("unsupported DEPLOY_PARTY"))
+	}
+	return deployParty
+}
+
+func P1Url() string {
+	deployParty := os.Getenv("DEPLOY_PARTY")
+	p1Url := os.Getenv("P1_URL")
+	//fmt.Println("current deployParty:", deployParty)
+	if deployParty != DEPLOY_PARTY_P1 && len(p1Url) == 0 {
+		panic(errors.New("unsupported P1Url"))
+	}
+	return p1Url
 }
 
 func InitLogger() {
@@ -86,7 +111,7 @@ func initDBEngine(config *DbConfig) *gorm.DB {
 
 func InitDB() {
 	db := initDBEngine(&DbConfig{
-		Host:         Config.DB.Host,
+		Host:         os.Getenv("MYSQL_HOST"),
 		Port:         Config.DB.Port,
 		User:         Config.DB.UserName,
 		Password:     Config.DB.Password,

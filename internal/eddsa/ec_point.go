@@ -3,6 +3,7 @@ package eddsa
 import (
 	"encoding/hex"
 	"errors"
+	"main/global"
 	"main/internal/agl_ed25519/edwards25519"
 	"main/utils"
 	"math/big"
@@ -122,7 +123,7 @@ func ECPFromBytes(b *[32]byte) *Ed25519Point {
 	geBytes := [32]byte{}
 	geFromBytes.ToBytes(&geBytes)
 	geFromBytes = GeP3FromBytesNegativeVartime(&geBytes)
-	eight := ECSFromBigInt(new(big.Int).SetInt64(8))
+	eight := ECSFromBigInt(new(big.Int).SetInt64(global.CURVE_ORDER))
 	newPoint := Ed25519Point{
 		Purpose: "random",
 		Ge:      *geFromBytes,

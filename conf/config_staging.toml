@@ -1,0 +1,19 @@
+[base]
+Port = ":3000"
+Model = "debug"
+Env = "staging"
+
+[log]
+Path = "log/two_party_eddsa.log"
+MaxSize = 20
+MaxAge = 7
+Backups = 10
+
+[db]
+Port = 3306
+UserName = "admin"
+Password = "dbpassword"
+DBName = "mw_staging"
+MaxIdleConns = 10
+MaxOpenConns = 30
+MaxLifetime = 10
