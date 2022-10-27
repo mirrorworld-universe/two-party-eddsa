@@ -25,9 +25,13 @@ func SignRound1(userId *string, msg *string, clientKeypair *eddsa.Keypair, keyAg
 	// round 1
 	//datat, err := base64.StdEncoding.DecodeString(*msg)
 
+	// old way to do
+	msgHash := sha256.Sum256([]byte(*msg))
+
 	// msgHash from bigint
 	//msgBN, _ := new(big.Int).SetString(*msg, 10)
 	//msgHash := sha512.Sum512(msgBN.Bytes())
+	//msgHash := sha256.Sum256(msgBN.Bytes())
 	//msgHash := msgBN.Bytes()
 
 	println("msgbytes=", utils.BytesToStr(msgHash[:]))
