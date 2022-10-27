@@ -20,13 +20,14 @@ func SignRound1(userId *string, msg *string, clientKeypair *eddsa.Keypair, keyAg
 
 	// old way
 	msgHash := sha256.Sum256([]byte(*msg))
+	//msgHash := sha512.Sum512([]byte(*msg))
 
 	// round 1
 	//datat, err := base64.StdEncoding.DecodeString(*msg)
 
 	// msgHash from bigint
 	//msgBN, _ := new(big.Int).SetString(*msg, 10)
-	//msgHash := sha256.Sum256(msgBN.Bytes())
+	//msgHash := sha512.Sum512(msgBN.Bytes())
 	//msgHash := msgBN.Bytes()
 
 	println("msgbytes=", utils.BytesToStr(msgHash[:]))
@@ -178,7 +179,7 @@ func Sign(msg *string, clientKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg) {
 
 	// round 2
 	// send clientSecondSignMsg to p1, get serverSignSecondMsg{R, blindFactor}
-	eight := eddsa.ECSFromBigInt(new(big.Int).SetInt64(8))
+	eight := eddsa.ECSFromBigInt(new(big.Int).SetInt64(global.CURVE_ORDER))
 	eightInverse := eight.ModInvert()
 	serverSignSecondMsgRBytes := [32]byte{
 		142, 144, 114, 134, 190, 107, 127, 90,

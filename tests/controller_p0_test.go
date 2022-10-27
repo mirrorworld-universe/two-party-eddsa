@@ -12,14 +12,14 @@ import (
 /**
 Sample test pong endpoint
 */
-func (t *SuiteTest) TestPing() {
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest(http.MethodGet, "/p0/test", nil)
-	t.router.ServeHTTP(w, req)
-
-	//assertion
-	assert.Equal(t.T(), http.StatusOK, w.Code)
-}
+//func (t *SuiteTest) TestPing() {
+//	w := httptest.NewRecorder()
+//	req, _ := http.NewRequest(http.MethodGet, "/ping", nil)
+//	t.router.ServeHTTP(w, req)
+//
+//	//assertion
+//	assert.Equal(t.T(), http.StatusOK, w.Code)
+//}
 
 /**
 Helper method for keygen

@@ -2,6 +2,7 @@ package p1
 
 import (
 	"errors"
+	"main/global"
 	"main/internal/eddsa"
 	"math/big"
 )
@@ -76,7 +77,7 @@ func Sign(serverKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg) {
 	msgHash := new(big.Int).SetBytes(temp2[:])
 	println("msgHash=", msgHash.String(), " clientCommitment=", clientCommitment.String())
 
-	eight := eddsa.ECSFromBigInt(new(big.Int).SetInt64(8))
+	eight := eddsa.ECSFromBigInt(new(big.Int).SetInt64(global.CURVE_ORDER))
 	eightInverse := eight.ModInvert()
 
 	temp3 := [32]byte{

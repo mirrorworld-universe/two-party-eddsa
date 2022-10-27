@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"main/global"
 	"main/internal/eddsa"
 	"main/utils"
 	"math/big"
@@ -28,7 +29,7 @@ func Verify(msg *string, R *string, s *string, publicKey *string) bool {
 		panic(errors.New("cannot decode publicKey"))
 	}
 
-	eight := eddsa.ECSFromBigInt(new(big.Int).SetInt64(8))
+	eight := eddsa.ECSFromBigInt(new(big.Int).SetInt64(global.CURVE_ORDER))
 	eightInverse := eight.ModInvert()
 
 	RDecoded32 := [32]byte{}

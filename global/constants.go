@@ -9,3 +9,5 @@ const DEPLOY_PARTY_BOTH = "both"
 
 const DbActionCreate = "create"
 const DbActionUpdate = "update"
+
+const CURVE_ORDER = 32
