@@ -61,7 +61,7 @@ func P1SignRound1(c *gin.Context) {
 }
 
 func P1SignRound2(c *gin.Context) {
-	eight := eddsa.ECSFromBigInt(new(big.Int).SetInt64(global.CURVE_ORDER))
+	eight := eddsa.ECSFromBigInt(new(big.Int).SetInt64(global.CURVE_COFACTOR))
 	eightInverse := eight.ModInvert()
 
 	reqBody := rest.P1SignRound2Req{}

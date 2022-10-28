@@ -180,7 +180,7 @@ func Sign(msg *string, clientKeypair *eddsa.Keypair, keyAgg *eddsa.KeyAgg) {
 
 	// round 2
 	// send clientSecondSignMsg to p1, get serverSignSecondMsg{R, blindFactor}
-	eight := eddsa.ECSFromBigInt(new(big.Int).SetInt64(global.CURVE_ORDER))
+	eight := eddsa.ECSFromBigInt(new(big.Int).SetInt64(global.CURVE_COFACTOR))
 	eightInverse := eight.ModInvert()
 	serverSignSecondMsgRBytes := [32]byte{
 		142, 144, 114, 134, 190, 107, 127, 90,

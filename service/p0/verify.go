@@ -29,7 +29,7 @@ func Verify(msg *string, R *string, s *string, publicKey *string) bool {
 		panic(errors.New("cannot decode publicKey"))
 	}
 
-	eight := eddsa.ECSFromBigInt(new(big.Int).SetInt64(global.CURVE_ORDER))
+	eight := eddsa.ECSFromBigInt(new(big.Int).SetInt64(global.CURVE_COFACTOR))
 	eightInverse := eight.ModInvert()
 
 	RDecoded32 := [32]byte{}

@@ -10,4 +10,4 @@ const DEPLOY_PARTY_BOTH = "both"
 const DbActionCreate = "create"
 const DbActionUpdate = "update"
 
-const CURVE_ORDER = 32
+const CURVE_COFACTOR = 8

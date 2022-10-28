@@ -123,7 +123,7 @@ func ECPFromBytes(b *[32]byte) *Ed25519Point {
 	geBytes := [32]byte{}
 	geFromBytes.ToBytes(&geBytes)
 	geFromBytes = GeP3FromBytesNegativeVartime(&geBytes)
-	eight := ECSFromBigInt(new(big.Int).SetInt64(global.CURVE_ORDER))
+	eight := ECSFromBigInt(new(big.Int).SetInt64(global.CURVE_COFACTOR))
 	newPoint := Ed25519Point{
 		Purpose: "random",
 		Ge:      *geFromBytes,
