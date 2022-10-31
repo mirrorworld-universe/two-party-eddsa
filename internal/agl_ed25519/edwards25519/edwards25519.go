@@ -3,6 +3,10 @@ package edwards25519
 // This code is a port of the public domain, "ref10" implementation of eddsa
 // from SUPERCOP.
 
+// https://www.rfc-editor.org/rfc/rfc8032
+//	p: odd prime power p, 2^255 - 19 EdDSA uses an elliptic curve over the finite field GF(p).
+//	b: 256
+
 // FieldElement represents an element of the field GF(2^255 - 19).  An element
 // t, entries t[0]...t[9], represents the integer t[0]+2^26 t[1]+2^51 t[2]+2^77
 // t[3]+2^102 t[4]+...+2^230 t[9].  Bounds on each t[i] vary depending on
