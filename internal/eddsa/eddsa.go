@@ -110,9 +110,9 @@ func newKeyFromSeed(privateKey, seed []byte) Keypair {
 	prefix := make([]byte, 32)
 	privateKey = make([]byte, 32)
 
-	copy(prefix, h[32:])
+	copy(prefix, h[32:]) // b
 
-	copy(privateKey, h[0:32])
+	copy(privateKey, h[0:32]) // a
 	privateKey[0] &= 248
 	privateKey[31] &= 63
 	privateKey[31] |= 64
