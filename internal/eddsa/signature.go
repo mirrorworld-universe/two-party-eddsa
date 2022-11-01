@@ -26,12 +26,20 @@ type SignSecondMsg struct {
 	BlindFactor big.Int
 }
 
+// CreateEphemeralKeyAndCommit
+/**
+r = Sha512(prefix || M || rng)
+*/
 func CreateEphemeralKeyAndCommit(key *Keypair, message []byte) (EphemeralKey, SignFirstMsg, SignSecondMsg) {
 
 	prefixBN := key.ExtendedPrivateKey.Prefix.ToBigInt()
+
+	// hardcode
 	rnd, _ := new(big.Int).SetString("2030282828107764592039879086147438423373605693185722406299485015238703754456", 10)
 	//ecsRndBytes := [32]byte{}
 	//edwards25519.FeToBytes(&ecsRndBytes, &ECSNewRandom().Fe)
+
+	// [2, prefix, M, rnd]
 	bytes := [][]byte{
 		new(big.Int).SetInt64(2).Bytes(),
 		prefixBN.Bytes(),
@@ -52,9 +60,10 @@ func CreateEphemeralKeyAndCommit(key *Keypair, message []byte) (EphemeralKey, Si
 	//	"r2=", r2.ToString(),
 	//)
 
-	ecPoint := ECPointGenerator()
-	R := ecPoint.ECPMul(&r2.Fe)
+	ecPoint := ECPointGenerator() // B
+	R := ecPoint.ECPMul(&r2.Fe)   // R = [r]B
 
+	// commitment is used for verification purpose.
 	//hashCom := CreateCommitment(R.BytesCompressedToBigInt())
 	// hashcode
 	blindFactor, _ := new(big.Int).SetString("76517464160675767839318574288422328116452541159689926027818280551122440429139", 10)
@@ -80,6 +89,11 @@ func SigGetRTot(R []Ed25519Point) *Ed25519Point {
 	return &sum
 }
 
+// SigK
+/**
+compute k = H(R_total || apk || M)
+in some papers, this k is represented as h.
+*/
 func SigK(R_tot *Ed25519Point, apk *Ed25519Point, message *[]byte) Ed25519Scalar {
 	messageBN := new(big.Int).SetBytes(*message)
 	temp := [][]byte{
@@ -118,7 +132,7 @@ func AddSignatureParts(sigs []Signature) Signature {
 	}
 	return Signature{
 		SmallS: *sum,
-		R:      sigs[0].R,
+		R:      sigs[0].R, // @problem: R is not the sum
 	}
 }
 

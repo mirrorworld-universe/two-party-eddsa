@@ -26,14 +26,15 @@ func SignRound1(userId *string, msg *string, clientKeypair *eddsa.Keypair, keyAg
 	//datat, err := base64.StdEncoding.DecodeString(*msg)
 
 	// msgHash from bigint
+	// @NOTE, CreateEphemeralKeyAndCommit() will hash the msg. So maybe here just extract msg bytes, no need to hash it?
 	//msgBN, _ := new(big.Int).SetString(*msg, 10)
 	//msgHash := sha512.Sum512(msgBN.Bytes())
 	//msgHash := sha256.Sum256(msgBN.Bytes())
 	//msgHash := msgBN.Bytes()
 
-	println("msgbytes=", utils.BytesToStr(msgHash[:]))
+	//println("msgbytes=", utils.BytesToStr(msgHash[:]))
 	//msgHash := datat
-	println("msgHash=", new(big.Int).SetBytes(msgHash[:]).String())
+	//println("msgHash=", new(big.Int).SetBytes(msgHash[:]).String())
 
 	clientEphemeralKey, clientSignFirstMsg, clientSignSecondMsg := eddsa.CreateEphemeralKeyAndCommit(clientKeypair, msgHash[:])
 	println("clientEphemeralKey=", clientEphemeralKey.ToString(), ", clientSignFirstMsg=", clientSignFirstMsg.ToString()+", clientSignSecondMsg=", clientSignSecondMsg.ToString())
@@ -117,6 +118,7 @@ func SignRound1(userId *string, msg *string, clientKeypair *eddsa.Keypair, keyAg
 	}
 
 	// round 3
+	// compute rTot = R0 + R1
 	ri := []eddsa.Ed25519Point{
 		*serverSignSecondMsgR,
 		clientSignSecondMsg.R,
@@ -125,14 +127,15 @@ func SignRound1(userId *string, msg *string, clientKeypair *eddsa.Keypair, keyAg
 	println("[P0SignRound1] rTot=", rTot.ToString())
 
 	msgHash2 := msgHash[:]
-	k := eddsa.SigK(rTot, &keyAgg.Apk, &msgHash2)
+	k := eddsa.SigK(rTot, &keyAgg.Apk, &msgHash2) // h
 	println("[P0SignRound1] k=", k.ToString(), " keyAgg=", keyAgg.ToString(), " msgHash=", new(big.Int).SetBytes(msgHash2).String())
 
+	// compute own small s
 	s2 := eddsa.PartialSign(
 		&clientEphemeralKey.SmallR,
 		clientKeypair,
 		&k,
-		&keyAgg.Hash,
+		&keyAgg.Hash, // @problem: paper ai=H(pk0||pk1), here is ai=H(pk0||pk1)*pk0
 		rTot,
 	)
 	println("[P0SignRound1] s2=", s2.ToString())

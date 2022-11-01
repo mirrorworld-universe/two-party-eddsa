@@ -207,7 +207,7 @@ func KeyAggregationN(pks *[]Ed25519Point, partyIdx uint8) *KeyAgg {
 	}
 
 	sum := apkVec[0]
-	// apk = hash(pk0||pk1)*pk0 + hash(pk1||pk0)*pk1
+	// apk = hash(pk0||pk1)*pk0 hash(pk1||pk0)*pk1
 	for i := 1; i < len(apkVec); i++ {
 		sum = sum.ECPAddPoint(&apkVec[i].Ge)
 	}
@@ -219,6 +219,10 @@ func KeyAggregationN(pks *[]Ed25519Point, partyIdx uint8) *KeyAgg {
 	return &keyAgg
 }
 
+// Verify
+/**
+8SB == 8R + 8kA
+*/
 func Verify(signature *Signature, message *[]byte, publicKey *Ed25519Point) bool {
 	bytes := [][]byte{
 		signature.R.BytesCompressedToBigInt().Bytes(),
