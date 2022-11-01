@@ -6,7 +6,6 @@ import (
 	cryptorand "crypto/rand"
 	"crypto/sha512"
 	"errors"
-	"fmt"
 	"io"
 	"main/utils"
 	"math/big"
@@ -96,14 +95,26 @@ func NewKeyFromSeed(seed []byte) Keypair {
 	return keypair
 }
 
+// newKeyFromSeed
+/**
+Key Generation.
+
+H(seed) = (h0, h1, ..., h2s−1) = (a, b)
+	where s: key length 256
+	a: private scalar value
+ 	b: auxiliary key, aka prefix
+
+public_key = [a]B
+*/
 func newKeyFromSeed(privateKey, seed []byte) Keypair {
 	if l := len(seed); l != SeedSize {
 		panic(errors.New("eddsa: bad seed length: " + strconv.Itoa(l)))
 	}
-	ecPoint := ECPointGenerator()
+	ecPoint := ECPointGenerator() // B
 	ecPointBytes := [32]byte{}
 	ecPoint.Ge.ToBytes(&ecPointBytes)
 	//fmt.Println("ecPoint=", ecPointBytes)
+
 	h := sha512.Sum512(seed)
 	//fmt.Println("sha512 hash=", h)
 
@@ -113,6 +124,8 @@ func newKeyFromSeed(privateKey, seed []byte) Keypair {
 	copy(prefix, h[32:]) // b
 
 	copy(privateKey, h[0:32]) // a
+
+	// clamping. For security purpose
 	privateKey[0] &= 248
 	privateKey[31] &= 63
 	privateKey[31] |= 64
@@ -124,7 +137,7 @@ func newKeyFromSeed(privateKey, seed []byte) Keypair {
 
 	prefixBN := new(big.Int).SetBytes(prefix)
 	prefixScalar := ECSFromBigInt(prefixBN)
-	publicKey := ecPoint.ECPMul(&privateKeyScalar.Fe)
+	publicKey := ecPoint.ECPMul(&privateKeyScalar.Fe) // A = [a]B
 
 	publicKeyBytes := [32]byte{}
 	publicKey.Ge.ToBytes(&publicKeyBytes)
@@ -139,12 +152,21 @@ func newKeyFromSeed(privateKey, seed []byte) Keypair {
 	}
 }
 
+// KeyAggregationN
+/**
+Given two public keys: pks = [pk0, pk1]
+
+Then aggregated public key: apk = H(pk0 || pk1) * pk0 + H(pk1 || pk0) * pk1
+	where || means concatenation.
+*/
 func KeyAggregationN(pks *[]Ed25519Point, partyIdx uint8) *KeyAgg {
 	bn1 := new(big.Int).SetUint64(1)
+
+	// pk0 || pk1
 	xCoorVec := []big.Int{}
-	for i, pk := range *pks {
+	for _, pk := range *pks {
 		temp := pk.BytesCompressedToBigInt()
-		fmt.Println("pks[] i=", i, ".bytes_compressed_to_big_int=", temp.String())
+		//fmt.Println("pks[] i=", i, ".bytes_compressed_to_big_int=", temp.String())
 		xCoorVec = append(xCoorVec, *temp)
 	}
 	//fmt.Println("x_coor_vec=", utils.BigIntSliceToString(&xCoorVec))
@@ -158,6 +180,7 @@ func KeyAggregationN(pks *[]Ed25519Point, partyIdx uint8) *KeyAgg {
 			vec = append(vec, xCoorVec[i])
 		}
 		//fmt.Println("hash_vec xx=", utils.BigIntSliceToString(&vec))
+
 		// put all bytes together
 		bytes := []byte{}
 		for _, v := range vec {
@@ -165,6 +188,9 @@ func KeyAggregationN(pks *[]Ed25519Point, partyIdx uint8) *KeyAgg {
 				bytes = append(bytes, b)
 			}
 		}
+
+		// 1st iteration: hash([1, pk0, pk0, pk1])
+		// 2nd iteration: hash([1, pk1, pk0, pk1])
 		h := sha512.Sum512(bytes)
 		hashVec = append(hashVec, *new(big.Int).SetBytes(h[:]))
 	}
@@ -175,12 +201,13 @@ func KeyAggregationN(pks *[]Ed25519Point, partyIdx uint8) *KeyAgg {
 		pk := (*pks)[i]
 		hash := hashVec[i]
 		hashT := ECSFromBigInt(&hash)
-		a_i := pk.ECPMul(&hashT.Fe)
+		a_i := pk.ECPMul(&hashT.Fe) // hash(pk0||pk1)*pk0, or hash(pk1||pk0)*pk1
 		apkVec = append(apkVec, a_i)
 		//fmt.Println("xx hash=", hash.String(), " hash_t=", hashT.ToString(), " a_i=", a_i.ToString())
 	}
 
 	sum := apkVec[0]
+	// apk = hash(pk0||pk1)*pk0 + hash(pk1||pk0)*pk1
 	for i := 1; i < len(apkVec); i++ {
 		sum = sum.ECPAddPoint(&apkVec[i].Ge)
 	}

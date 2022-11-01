@@ -58,6 +58,8 @@ func GeP3FromBytesNegativeVartime(s *[32]byte) *GeP3 {
 	return &p3
 }
 
+// Return the base point B.
+// Some papers use G to represent base point.
 func ECPointGenerator() *Ed25519Point {
 	vec_1 := [32]byte{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 	var ge edwards25519.ExtendedGroupElement
